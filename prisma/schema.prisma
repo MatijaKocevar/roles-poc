@@ -1,0 +1,42 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Role {
+  id          Int          @id @default(autoincrement())
+  name        String
+  permissions Permission[]
+  users       User[]
+}
+
+model Page {
+  id          Int      @id @default(autoincrement())
+  name        String
+  parentId    Int?
+  parent      Page?    @relation("Subpages", fields: [parentId], references: [id])
+  subpages    Page[]   @relation("Subpages")
+  permissions Permission[]
+}
+
+model Permission {
+  id        Int     @id @default(autoincrement())
+  roleId    Int
+  pageId    Int
+  canView   Boolean @default(false)
+  canEdit   Boolean @default(false)
+  canDelete Boolean @default(false)
+  role      Role    @relation(fields: [roleId], references: [id])
+  page      Page    @relation(fields: [pageId], references: [id])
+  @@unique([roleId, pageId])
+}
+
+model User {
+  id    Int    @id @default(autoincrement())
+  email String @unique
+  roles Role[]
+}

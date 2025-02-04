@@ -16,6 +16,16 @@ const data = {
     navMain: [
         { title: "Users", url: "/users" },
         { title: "Roles", url: "/roles" },
+        { title: "Portfolios", url: "/portfolios" },
+        { title: "Contracts", url: "/contracts" },
+        { title: "Analytics", url: "/analytics" },
+        { title: "Assets", url: "/assets" },
+        { title: "Billing & Payments", url: "/billing-payments" },
+        { title: "Dashboard", url: "/dashboard" },
+        { title: "Marketing", url: "/marketing" },
+        { title: "Monitoring", url: "/monitoring" },
+        { title: "Security", url: "/security" },
+        { title: "Settings", url: "/settings" },
     ],
 };
 
