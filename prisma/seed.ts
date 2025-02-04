@@ -2,15 +2,20 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+async function clearData(): Promise<void> {
+    await prisma.permission.deleteMany({});
+    await prisma.role.deleteMany({});
+    await prisma.page.deleteMany({});
+}
+
 async function main(): Promise<void> {
+    await clearData();
+
     const pagesData = [
-        { name: "Portfolios", subpages: ["Overview", "Create Portfolio", "Edit Portfolio"] },
-        {
-            name: "Contracts",
-            subpages: ["Overview", "Create Contract", "Renew Contract", "Terminate Contract"],
-        },
+        { name: "Portfolios", subpages: ["Overview", "Management"] },
+        { name: "Contracts", subpages: ["Overview", "Management"] },
         { name: "Analytics", subpages: ["Overview", "Reports", "Data Export"] },
-        { name: "Assets", subpages: ["Overview", "Upload Assets", "Manage Assets"] },
+        { name: "Assets", subpages: ["Overview", "Management"] },
         {
             name: "Billing & Payments",
             subpages: ["Invoices", "Payment Methods", "Payment History"],
@@ -23,9 +28,9 @@ async function main(): Promise<void> {
     ];
 
     for (const pageData of pagesData) {
-        const page = await prisma.page.create({ data: { name: pageData.name } });
+        const mainPage = await prisma.page.create({ data: { name: pageData.name } });
         for (const subpageName of pageData.subpages) {
-            await prisma.page.create({ data: { name: subpageName, parentId: page.id } });
+            await prisma.page.create({ data: { name: subpageName, parentId: mainPage.id } });
         }
     }
 
@@ -57,8 +62,8 @@ main()
     .then(async () => {
         await prisma.$disconnect();
     })
-    .catch(async (e) => {
-        console.error(e);
+    .catch(async (error) => {
+        console.error(error);
         await prisma.$disconnect();
         process.exit(1);
     });
