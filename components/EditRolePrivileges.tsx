@@ -1,7 +1,5 @@
 "use client";
-
 import { useState } from "react";
-
 export default function EditRolePrivileges({ role, pages }: { role: any; pages: any[] }) {
     const initialPermissions: {
         [key: number]: { canView: boolean; canEdit: boolean; canDelete: boolean };
@@ -13,7 +11,6 @@ export default function EditRolePrivileges({ role, pages }: { role: any; pages: 
             canDelete: perm.canDelete,
         };
     });
-
     const [permissions, setPermissions] = useState(initialPermissions);
     const togglePermission = (pageId: number, field: "canView" | "canEdit" | "canDelete") => {
         setPermissions((prev) => ({
@@ -22,12 +19,25 @@ export default function EditRolePrivileges({ role, pages }: { role: any; pages: 
         }));
     };
     const handleSave = async () => {
-        console.log("Saving permissions", permissions);
+        const response = await fetch("/api/role-permissions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ roleId: role.id, permissions }),
+        });
+        const data = await response.json();
+        console.log("Saved", data);
     };
-
     return (
         <div className="container mx-auto p-6">
-            <h1 className="text-3xl font-bold mb-6">Edit Role: {role.name}</h1>
+            <div className="flex justify-between items-center">
+                <h1 className="text-3xl font-bold mb-6">Edit Role: {role.name}</h1>
+                <button
+                    onClick={handleSave}
+                    className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                    Save Changes
+                </button>
+            </div>
             {pages.map((page) => (
                 <div key={page.id} className="mb-4 border rounded p-4">
                     <h2 className="text-xl font-semibold">{page.name}</h2>
@@ -96,12 +106,6 @@ export default function EditRolePrivileges({ role, pages }: { role: any; pages: 
                     )}
                 </div>
             ))}
-            <button
-                onClick={handleSave}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-                Save Changes
-            </button>
         </div>
     );
 }
