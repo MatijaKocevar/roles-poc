@@ -1,4 +1,7 @@
+"use client";
+
 import * as React from "react";
+import { useState } from "react";
 import { GalleryVerticalEnd } from "lucide-react";
 import Link from "next/link";
 import {
@@ -105,10 +108,12 @@ const data = {
     ],
 };
 
-export default data;
-
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const { hasPermission } = useActiveUser();
+    const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});
+
+    const toggleExpanded = (title: string) =>
+        setExpanded((prev) => ({ ...prev, [title]: !prev[title] }));
 
     const filteredNavMain = data.navMain
         .map((item) => {
@@ -152,20 +157,32 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         {filteredNavMain.map((item) =>
                             item.subpages ? (
                                 <div key={item.title}>
-                                    <SidebarMenuItem>
-                                        <SidebarMenuButton asChild>
-                                            <Link href={item.url}>{item.title}</Link>
-                                        </SidebarMenuButton>
-                                    </SidebarMenuItem>
-                                    <div className="ml-4">
-                                        {item.subpages.map((sub) => (
-                                            <SidebarMenuItem key={sub.title}>
-                                                <SidebarMenuButton asChild>
-                                                    <Link href={sub.url}>{sub.title}</Link>
-                                                </SidebarMenuButton>
-                                            </SidebarMenuItem>
-                                        ))}
+                                    <div className="flex items-center justify-between">
+                                        <SidebarMenuItem>
+                                            <SidebarMenuButton asChild>
+                                                <Link href={item.url}>{item.title}</Link>
+                                            </SidebarMenuButton>
+                                        </SidebarMenuItem>
+                                        <button
+                                            onClick={() => toggleExpanded(item.title)}
+                                            className="p-1 text-gray-500 hover:text-gray-700"
+                                        >
+                                            {expanded[item.title] ? "–" : "+"}
+                                        </button>
                                     </div>
+                                    {item.subpages &&
+                                        item.subpages.length > 0 &&
+                                        expanded[item.title] && (
+                                            <div className="ml-4">
+                                                {item.subpages.map((sub) => (
+                                                    <SidebarMenuItem key={sub.title}>
+                                                        <SidebarMenuButton asChild>
+                                                            <Link href={sub.url}>{sub.title}</Link>
+                                                        </SidebarMenuButton>
+                                                    </SidebarMenuItem>
+                                                ))}
+                                            </div>
+                                        )}
                                 </div>
                             ) : (
                                 <SidebarMenuItem key={item.title}>
