@@ -15,7 +15,7 @@ export default function NewRolePage() {
             body: JSON.stringify({ name: roleName }),
         });
         if (response.ok) {
-            router.push("/roles");
+            router.push("/security/roles");
         } else {
             console.error("Error creating role");
         }

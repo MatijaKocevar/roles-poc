@@ -25,7 +25,7 @@ export default async function UsersPage() {
                             </td>
                             <td className="py-2 px-4 border">
                                 <Link
-                                    href={`/users/${user.id}/edit`}
+                                    href={`/security/users/${user.id}/edit`}
                                     className="text-blue-500 hover:underline"
                                 >
                                     Edit

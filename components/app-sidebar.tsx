@@ -24,7 +24,14 @@ const data = {
         { title: "Dashboard", url: "/dashboard" },
         { title: "Marketing", url: "/marketing" },
         { title: "Monitoring", url: "/monitoring" },
-        { title: "Security", url: "/security" },
+        {
+            title: "Security",
+            url: "/security",
+            subpages: [
+                { title: "Roles", url: "/security/roles" },
+                { title: "Users", url: "/security/users" },
+            ],
+        },
         { title: "Settings", url: "/settings" },
     ],
 };
@@ -52,13 +59,32 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarContent>
                 <SidebarGroup>
                     <SidebarMenu>
-                        {data.navMain.map((item) => (
-                            <SidebarMenuItem key={item.title}>
-                                <SidebarMenuButton asChild>
-                                    <Link href={item.url}>{item.title}</Link>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-                        ))}
+                        {data.navMain.map((item) =>
+                            item.subpages ? (
+                                <div key={item.title}>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton asChild>
+                                            <Link href={item.url}>{item.title}</Link>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                    <div className="ml-4">
+                                        {item.subpages.map((sub) => (
+                                            <SidebarMenuItem key={sub.title}>
+                                                <SidebarMenuButton asChild>
+                                                    <Link href={sub.url}>{sub.title}</Link>
+                                                </SidebarMenuButton>
+                                            </SidebarMenuItem>
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : (
+                                <SidebarMenuItem key={item.title}>
+                                    <SidebarMenuButton asChild>
+                                        <Link href={item.url}>{item.title}</Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            )
+                        )}
                     </SidebarMenu>
                 </SidebarGroup>
             </SidebarContent>

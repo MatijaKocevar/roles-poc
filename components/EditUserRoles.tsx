@@ -21,7 +21,7 @@ export default function EditUserRoles({ user, roles }: { user: any; roles: any[]
             body: JSON.stringify({ userId: user.id, roleIds: selectedRoles }),
         });
         if (response.ok) {
-            router.push("/users");
+            router.push("/security/users");
         } else {
             console.error("Error updating user roles");
         }
