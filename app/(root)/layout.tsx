@@ -6,7 +6,6 @@ import { AppSidebar } from "@/components/app-sidebar";
 import {
     Breadcrumb,
     BreadcrumbItem,
-    BreadcrumbLink,
     BreadcrumbList,
     BreadcrumbPage,
     BreadcrumbSeparator,
@@ -23,7 +22,7 @@ export default function Page({ children }: Readonly<{ children: ReactNode }>) {
         <SidebarProvider>
             <AppSidebar />
             <SidebarInset>
-                <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-white">
                     <SidebarTrigger className="-ml-1" />
                     <Separator orientation="vertical" className="mr-2 h-4" />
                     <Breadcrumb>
@@ -33,24 +32,22 @@ export default function Page({ children }: Readonly<{ children: ReactNode }>) {
                                     const isLast = index === pathSegments.length - 1;
                                     const href = "/" + pathSegments.slice(0, index + 1).join("/");
                                     return (
-                                        <BreadcrumbItem key={href}>
+                                        <span key={href}>
                                             {isLast ? (
-                                                <BreadcrumbPage className="capitalize">
+                                                <div className="capitalize">
                                                     {decodeURIComponent(segment)}
-                                                </BreadcrumbPage>
+                                                </div>
                                             ) : (
-                                                <>
+                                                <div className="flex items-center gap-1">
                                                     <Link href={href}>
-                                                        <a>
-                                                            <BreadcrumbLink className="capitalize">
-                                                                {decodeURIComponent(segment)}
-                                                            </BreadcrumbLink>
-                                                        </a>
+                                                        <div className="capitalize">
+                                                            {decodeURIComponent(segment)}
+                                                        </div>
                                                     </Link>
                                                     <BreadcrumbSeparator />
-                                                </>
+                                                </div>
                                             )}
-                                        </BreadcrumbItem>
+                                        </span>
                                     );
                                 })
                             ) : (
