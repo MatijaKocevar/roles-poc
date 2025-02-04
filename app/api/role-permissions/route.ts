@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-type PermissionData = { canView: boolean; canEdit: boolean; canDelete: boolean };
+type PermissionData = {
+    canView: boolean;
+    canEdit: boolean;
+    canDelete: boolean;
+    canCreate: boolean;
+};
 
 export async function POST(request: Request) {
     const { roleId, permissions } = await request.json();
@@ -13,6 +18,7 @@ export async function POST(request: Request) {
                 canView: typedPerms.canView,
                 canEdit: typedPerms.canEdit,
                 canDelete: typedPerms.canDelete,
+                canCreate: typedPerms.canCreate,
             },
         });
     });

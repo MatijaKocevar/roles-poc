@@ -11,32 +11,122 @@ import {
     SidebarMenuItem,
     SidebarRail,
 } from "@/components/ui/sidebar";
+import { useActiveUser } from "@/app/active-user-context";
 
 const data = {
     navMain: [
-        { title: "Users", url: "/users" },
-        { title: "Roles", url: "/roles" },
-        { title: "Portfolios", url: "/portfolios" },
-        { title: "Contracts", url: "/contracts" },
-        { title: "Analytics", url: "/analytics" },
-        { title: "Assets", url: "/assets" },
-        { title: "Billing & Payments", url: "/billing-payments" },
-        { title: "Dashboard", url: "/dashboard" },
-        { title: "Marketing", url: "/marketing" },
-        { title: "Monitoring", url: "/monitoring" },
+        {
+            title: "Portfolios",
+            url: "/portfolios",
+            subpages: [
+                { title: "Overview", url: "/portfolios/overview" },
+                { title: "Manage Portfolios", url: "/portfolios/manage" },
+            ],
+        },
+        {
+            title: "Contracts",
+            url: "/contracts",
+            subpages: [
+                { title: "Overview", url: "/contracts/overview" },
+                { title: "Manage Contracts", url: "/contracts/manage" },
+            ],
+        },
+        {
+            title: "Analytics",
+            url: "/analytics",
+            subpages: [
+                { title: "Overview", url: "/analytics/overview" },
+                { title: "Reports", url: "/analytics/reports" },
+                { title: "Data Export", url: "/analytics/data-export" },
+            ],
+        },
+        {
+            title: "Assets",
+            url: "/assets",
+            subpages: [
+                { title: "Overview", url: "/assets/overview" },
+                { title: "Manage Assets", url: "/assets/manage" },
+            ],
+        },
+        {
+            title: "Billing & Payments",
+            url: "/billing-payments",
+            subpages: [
+                { title: "Invoices", url: "/billing-payments/invoices" },
+                { title: "Payment Methods", url: "/billing-payments/payment-methods" },
+                { title: "Payment History", url: "/billing-payments/payment-history" },
+            ],
+        },
+        {
+            title: "Dashboard",
+            url: "/dashboard",
+            subpages: [
+                { title: "Summary", url: "/dashboard/summary" },
+                { title: "Notifications", url: "/dashboard/notifications" },
+                { title: "Activity Log", url: "/dashboard/activity-log" },
+            ],
+        },
+        {
+            title: "Marketing",
+            url: "/marketing",
+            subpages: [
+                { title: "Campaigns", url: "/marketing/campaigns" },
+                { title: "Leads", url: "/marketing/leads" },
+                { title: "Performance", url: "/marketing/performance" },
+            ],
+        },
+        {
+            title: "Monitoring",
+            url: "/monitoring",
+            subpages: [
+                { title: "System Status", url: "/monitoring/system-status" },
+                { title: "Logs", url: "/monitoring/logs" },
+                { title: "Alerts", url: "/monitoring/alerts" },
+            ],
+        },
         {
             title: "Security",
             url: "/security",
             subpages: [
-                { title: "Roles", url: "/security/roles" },
-                { title: "Users", url: "/security/users" },
+                { title: "User Management", url: "/security/users" },
+                { title: "Role Management", url: "/security/roles" },
+                { title: "Audit Logs", url: "/security/audit-logs" },
             ],
         },
-        { title: "Settings", url: "/settings" },
+        {
+            title: "Settings",
+            url: "/settings",
+            subpages: [
+                { title: "General", url: "/settings/general" },
+                { title: "Preferences", url: "/settings/preferences" },
+                { title: "Integrations", url: "/settings/integrations" },
+            ],
+        },
     ],
 };
 
+export default data;
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+    const { hasPermission } = useActiveUser();
+
+    const filteredNavMain = data.navMain
+        .map((item) => {
+            if (item.subpages) {
+                const filteredSubpages = item.subpages.filter((sub) =>
+                    hasPermission(sub.title, "canView")
+                );
+                return { ...item, subpages: filteredSubpages };
+            }
+            return item;
+        })
+        .filter((item) => {
+            if (item.subpages) {
+                return hasPermission(item.title, "canView") || item.subpages.length > 0;
+            }
+            return hasPermission(item.title, "canView");
+        });
+
     return (
         <Sidebar {...props}>
             <SidebarHeader>
@@ -59,7 +149,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarContent>
                 <SidebarGroup>
                     <SidebarMenu>
-                        {data.navMain.map((item) =>
+                        {filteredNavMain.map((item) =>
                             item.subpages ? (
                                 <div key={item.title}>
                                     <SidebarMenuItem>

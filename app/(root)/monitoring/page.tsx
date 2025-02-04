@@ -1,3 +1,5 @@
+import GenericPage from "@/components/GenericPage";
+
 export default function MonitoringPage() {
-    return <div>MONITORING</div>;
+    return <GenericPage pageName="Monitoring" />;
 }

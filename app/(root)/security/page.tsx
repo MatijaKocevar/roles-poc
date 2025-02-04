@@ -1,3 +1,5 @@
+import GenericPage from "@/components/GenericPage";
+
 export default function SecurityPage() {
-    return <div>SECURITY</div>;
+    return <GenericPage pageName="Security" />;
 }

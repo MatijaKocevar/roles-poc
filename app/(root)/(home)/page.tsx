@@ -1,5 +1,7 @@
-import { redirect } from "next/navigation";
-
 export default function HomePage() {
-    redirect("/users");
+    return (
+        <div className="h-full flex justify-center items-center font-bold text-3xl ">
+            FLEX USER/ROLE MANAGEMENT POC
+        </div>
+    );
 }

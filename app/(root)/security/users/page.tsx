@@ -1,5 +1,6 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
+import UserSwitcher from "@/components/UserSwitcher";
 
 export default async function UsersPage() {
     const users = await prisma.user.findMany({ include: { roles: true } });
@@ -24,12 +25,15 @@ export default async function UsersPage() {
                                 {user.roles.map((role) => role.name).join(", ")}
                             </td>
                             <td className="py-2 px-4 border">
-                                <Link
-                                    href={`/security/users/${user.id}/edit`}
-                                    className="text-blue-500 hover:underline"
-                                >
-                                    Edit
-                                </Link>
+                                <div className="flex gap-2">
+                                    <Link
+                                        href={`/security/users/${user.id}/edit`}
+                                        className="text-blue-500 hover:underline"
+                                    >
+                                        Edit
+                                    </Link>
+                                    <UserSwitcher userId={user.id} />
+                                </div>
                             </td>
                         </tr>
                     ))}

@@ -1,3 +1,5 @@
-export default function AssetsPage() {
-    return <div>ASSETS</div>;
+import GenericPage from "@/components/GenericPage";
+
+export default function AssetsOverviewPage() {
+    return <GenericPage pageName="Overview" />;
 }

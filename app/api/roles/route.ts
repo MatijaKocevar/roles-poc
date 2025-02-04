@@ -15,6 +15,7 @@ export async function POST(request: Request) {
                 canView: false,
                 canEdit: false,
                 canDelete: false,
+                canCreate: false,
             },
         });
     }

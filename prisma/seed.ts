@@ -15,11 +15,11 @@ async function main(): Promise<void> {
     const pagesData = [
         {
             name: "Portfolios",
-            subpages: ["Overview", "Create Portfolio", "Edit Portfolio"],
+            subpages: ["Overview", "Manage Portfolios"],
         },
         {
             name: "Contracts",
-            subpages: ["Overview", "Create Contract", "Renew Contract", "Terminate Contract"],
+            subpages: ["Overview", "Manage Contracts"],
         },
         {
             name: "Analytics",
@@ -27,7 +27,7 @@ async function main(): Promise<void> {
         },
         {
             name: "Assets",
-            subpages: ["Overview", "Upload Assets", "Manage Assets"],
+            subpages: ["Overview", "Manage Assets"],
         },
         {
             name: "Billing & Payments",
@@ -68,9 +68,18 @@ async function main(): Promise<void> {
     const allPages = await prisma.page.findMany();
 
     const rolesData = [
-        { name: "Admin", permissions: { canView: true, canEdit: true, canDelete: true } },
-        { name: "Editor", permissions: { canView: true, canEdit: true, canDelete: false } },
-        { name: "Viewer", permissions: { canView: true, canEdit: false, canDelete: false } },
+        {
+            name: "Admin",
+            permissions: { canView: true, canEdit: true, canDelete: true, canCreate: true },
+        },
+        {
+            name: "Editor",
+            permissions: { canView: true, canEdit: true, canDelete: false, canCreate: true },
+        },
+        {
+            name: "Viewer",
+            permissions: { canView: true, canEdit: false, canDelete: false, canCreate: false },
+        },
     ];
 
     const createdRoles = [];
@@ -85,6 +94,7 @@ async function main(): Promise<void> {
                     canView: roleData.permissions.canView,
                     canEdit: roleData.permissions.canEdit,
                     canDelete: roleData.permissions.canDelete,
+                    canCreate: roleData.permissions.canCreate,
                 },
             });
         }

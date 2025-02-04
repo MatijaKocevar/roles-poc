@@ -1,3 +1,5 @@
+import GenericPage from "@/components/GenericPage";
+
 export default function ContractsPage() {
-    return <div>CONTRACTS</div>;
+    return <GenericPage pageName="Contracts" />;
 }

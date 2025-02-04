@@ -1,31 +1,52 @@
 "use client";
 import { useState } from "react";
+import { useActiveUser } from "../app/active-user-context";
+
+type PermissionField = "canView" | "canEdit" | "canDelete" | "canCreate";
+
 export default function EditRolePrivileges({ role, pages }: { role: any; pages: any[] }) {
+    const { user, setUser } = useActiveUser();
+
     const initialPermissions: {
-        [key: number]: { canView: boolean; canEdit: boolean; canDelete: boolean };
+        [key: number]: {
+            canView: boolean;
+            canEdit: boolean;
+            canDelete: boolean;
+            canCreate: boolean;
+        };
     } = {};
     role.permissions.forEach((perm: any) => {
         initialPermissions[perm.page.id] = {
             canView: perm.canView,
             canEdit: perm.canEdit,
             canDelete: perm.canDelete,
+            canCreate: perm.canCreate,
         };
     });
     const [permissions, setPermissions] = useState(initialPermissions);
-    const togglePermission = (pageId: number, field: "canView" | "canEdit" | "canDelete") => {
+    const togglePermission = (pageId: number, field: PermissionField) => {
         setPermissions((prev) => ({
             ...prev,
             [pageId]: { ...prev[pageId], [field]: !prev[pageId]?.[field] },
         }));
     };
     const handleSave = async () => {
-        const response = await fetch("/api/role-permissions", {
+        await fetch("/api/role-permissions", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ roleId: role.id, permissions }),
         });
-        const data = await response.json();
-        console.log("Saved", data);
+
+        if (user?.roles.some((r) => r.id === role.id)) {
+            {
+                const res = await fetch(`/api/user?id=${user.id}`);
+
+                if (res.ok) {
+                    const newUser = await res.json();
+                    setUser(newUser);
+                }
+            }
+        }
     };
     return (
         <div className="container mx-auto p-6">
@@ -66,6 +87,14 @@ export default function EditRolePrivileges({ role, pages }: { role: any; pages: 
                             />
                             <span className="ml-1">Delete</span>
                         </label>
+                        <label>
+                            <input
+                                type="checkbox"
+                                checked={permissions[page.id]?.canCreate ?? false}
+                                onChange={() => togglePermission(page.id, "canCreate")}
+                            />
+                            <span className="ml-1">Create</span>
+                        </label>
                     </div>
                     {page.subpages.length > 0 && (
                         <div className="ml-4">
@@ -98,6 +127,16 @@ export default function EditRolePrivileges({ role, pages }: { role: any; pages: 
                                                 }
                                             />
                                             <span className="ml-1">Delete</span>
+                                        </label>
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                checked={permissions[sub.id]?.canCreate ?? false}
+                                                onChange={() =>
+                                                    togglePermission(sub.id, "canCreate")
+                                                }
+                                            />
+                                            <span className="ml-1">Create</span>
                                         </label>
                                     </div>
                                 </div>

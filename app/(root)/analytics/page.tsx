@@ -1,3 +1,5 @@
+import GenericPage from "@/components/GenericPage";
+
 export default function AnalyticsPage() {
-    return <div>ANALYTICS</div>;
+    return <GenericPage pageName="Analytics" />;
 }

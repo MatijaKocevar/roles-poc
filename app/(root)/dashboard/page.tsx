@@ -1,3 +1,5 @@
+import GenericPage from "@/components/GenericPage";
+
 export default function DashboardPage() {
-    return <div>DASHBOARD</div>;
+    return <GenericPage pageName="Dashboard" />;
 }

@@ -1,3 +1,5 @@
+import GenericPage from "@/components/GenericPage";
+
 export default function PortfoliosPage() {
-    return <div>PORTFOLIOS</div>;
+    return <GenericPage pageName="Portfolios" />;
 }

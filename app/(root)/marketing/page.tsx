@@ -1,3 +1,5 @@
+import GenericPage from "@/components/GenericPage";
+
 export default function MarketingPage() {
-    return <div>MARKETING</div>;
+    return <GenericPage pageName="Marketing" />;
 }

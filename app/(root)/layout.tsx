@@ -13,10 +13,12 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ReactNode } from "react";
+import { useActiveUser } from "../active-user-context";
 
 export default function Page({ children }: Readonly<{ children: ReactNode }>) {
     const pathname = usePathname();
     const pathSegments = pathname.split("/").filter((segment) => segment !== "");
+    const { user } = useActiveUser();
 
     return (
         <SidebarProvider>
@@ -57,6 +59,7 @@ export default function Page({ children }: Readonly<{ children: ReactNode }>) {
                             )}
                         </BreadcrumbList>
                     </Breadcrumb>
+                    <div className="flex-1 text-right">{user?.email}</div>
                 </header>
                 <div className="flex flex-1 flex-col gap-4 p-4">
                     <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min">

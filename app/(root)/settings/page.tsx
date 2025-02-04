@@ -1,3 +1,5 @@
+import GenericPage from "@/components/GenericPage";
+
 export default function SettingsPage() {
-    return <div>SETTINGS</div>;
+    return <GenericPage pageName="Settings" />;
 }

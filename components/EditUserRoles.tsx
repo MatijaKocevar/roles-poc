@@ -20,6 +20,7 @@ export default function EditUserRoles({ user, roles }: { user: any; roles: any[]
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ userId: user.id, roleIds: selectedRoles }),
         });
+
         if (response.ok) {
             router.push("/security/users");
         } else {
