@@ -6,9 +6,19 @@ const prisma = new PrismaClient();
 export default async function RolesListPage() {
     const roles = await prisma.role.findMany();
 
+    console.log(roles);
+
     return (
         <div className="container mx-auto p-6">
-            <h1 className="text-3xl font-bold mb-4">Roles</h1>
+            <div className="flex justify-between items-center mb-4">
+                <h1 className="text-3xl font-bold">Roles</h1>
+                <Link
+                    href="/roles/new"
+                    className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                >
+                    Create New Role
+                </Link>
+            </div>
             <table className="min-w-full bg-white border">
                 <thead>
                     <tr>
