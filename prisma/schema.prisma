@@ -41,3 +41,25 @@ model User {
   email String @unique
   roles Role[]
 }
+
+model Portfolio {
+  id          Int                  @id @default(autoincrement())
+  name        String
+  groups      RegulationGroup[]
+}
+
+model RegulationGroup {
+  id           Int              @id @default(autoincrement())
+  name         String
+  portfolio    Portfolio        @relation(fields: [portfolioId], references: [id])
+  portfolioId  Int
+  units        RegulationUnit[]
+}
+
+model RegulationUnit {
+  id         Int              @id @default(autoincrement())
+  name       String
+  group      RegulationGroup  @relation(fields: [groupId], references: [id])
+  groupId    Int
+}
+

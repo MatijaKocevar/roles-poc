@@ -19,39 +19,6 @@ import { useActiveUser } from "@/app/active-user-context";
 const data = {
     navMain: [
         {
-            title: "Portfolios",
-            url: "/portfolios",
-            subpages: [
-                { title: "Overview", url: "/portfolios/overview" },
-                { title: "Manage Portfolios", url: "/portfolios/manage" },
-            ],
-        },
-        {
-            title: "Contracts",
-            url: "/contracts",
-            subpages: [
-                { title: "Overview", url: "/contracts/overview" },
-                { title: "Manage Contracts", url: "/contracts/manage" },
-            ],
-        },
-        {
-            title: "Analytics",
-            url: "/analytics",
-            subpages: [
-                { title: "Overview", url: "/analytics/overview" },
-                { title: "Reports", url: "/analytics/reports" },
-                { title: "Data Export", url: "/analytics/data-export" },
-            ],
-        },
-        {
-            title: "Assets",
-            url: "/assets",
-            subpages: [
-                { title: "Overview", url: "/assets/overview" },
-                { title: "Manage Assets", url: "/assets/manage" },
-            ],
-        },
-        {
             title: "Billing & Payments",
             url: "/billing-payments",
             subpages: [
@@ -61,12 +28,11 @@ const data = {
             ],
         },
         {
-            title: "Dashboard",
-            url: "/dashboard",
+            title: "Contracts",
+            url: "/contracts",
             subpages: [
-                { title: "Summary", url: "/dashboard/summary" },
-                { title: "Notifications", url: "/dashboard/notifications" },
-                { title: "Activity Log", url: "/dashboard/activity-log" },
+                { title: "Overview", url: "/contracts/overview" },
+                { title: "Manage Contracts", url: "/contracts/manage" },
             ],
         },
         {
@@ -88,6 +54,30 @@ const data = {
             ],
         },
         {
+            title: "Portfolios",
+            url: "/portfolios",
+            subpages: [],
+        },
+        {
+            title: "Regulation Groups",
+            url: "/regulation-groups",
+            subpages: [],
+        },
+        {
+            title: "Regulation Units",
+            url: "/regulation-units",
+            subpages: [],
+        },
+        {
+            title: "Dashboard",
+            url: "/dashboard",
+            subpages: [
+                { title: "Summary", url: "/dashboard/summary" },
+                { title: "Notifications", url: "/dashboard/notifications" },
+                { title: "Activity Log", url: "/dashboard/activity-log" },
+            ],
+        },
+        {
             title: "Security",
             url: "/security",
             subpages: [
@@ -104,6 +94,11 @@ const data = {
                 { title: "Preferences", url: "/settings/preferences" },
                 { title: "Integrations", url: "/settings/integrations" },
             ],
+        },
+        {
+            title: "System Settings",
+            url: "/system-settings",
+            subpages: [],
         },
     ],
 };

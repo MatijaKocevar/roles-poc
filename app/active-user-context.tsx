@@ -72,6 +72,9 @@ export function ActiveUserProvider({
                     agg[page].canCreate = agg[page].canCreate || perm.permission.canCreate;
                 }
             }
+
+            console.log("Aggregated permissions", agg);
+
             setPermissions(agg);
         } else {
             setPermissions({});

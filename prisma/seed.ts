@@ -7,6 +7,9 @@ async function clearData(): Promise<void> {
     await prisma.user.deleteMany({});
     await prisma.role.deleteMany({});
     await prisma.page.deleteMany({});
+    await prisma.regulationUnit.deleteMany({});
+    await prisma.regulationGroup.deleteMany({});
+    await prisma.portfolio.deleteMany({});
 }
 
 async function main(): Promise<void> {
@@ -14,28 +17,12 @@ async function main(): Promise<void> {
 
     const pagesData = [
         {
-            name: "Portfolios",
-            subpages: ["Overview", "Manage Portfolios"],
-        },
-        {
-            name: "Contracts",
-            subpages: ["Overview", "Manage Contracts"],
-        },
-        {
-            name: "Analytics",
-            subpages: ["Overview", "Reports", "Data Export"],
-        },
-        {
-            name: "Assets",
-            subpages: ["Overview", "Manage Assets"],
-        },
-        {
             name: "Billing & Payments",
             subpages: ["Invoices", "Payment Methods", "Payment History"],
         },
         {
-            name: "Dashboard",
-            subpages: ["Summary", "Notifications", "Activity Log"],
+            name: "Contracts",
+            subpages: ["Overview", "Manage Contracts"],
         },
         {
             name: "Marketing",
@@ -46,6 +33,18 @@ async function main(): Promise<void> {
             subpages: ["System Status", "Logs", "Alerts"],
         },
         {
+            name: "Portfolios",
+            subpages: [],
+        },
+        {
+            name: "Regulation Groups",
+            subpages: [],
+        },
+        {
+            name: "Regulation Units",
+            subpages: [],
+        },
+        {
             name: "Security",
             subpages: ["User Management", "Role Management", "Audit Logs"],
         },
@@ -53,9 +52,13 @@ async function main(): Promise<void> {
             name: "Settings",
             subpages: ["General", "Preferences", "Integrations"],
         },
+        {
+            name: "System Settings",
+            subpages: [],
+        },
     ];
 
-    // Create main pages and their subpages
+    // Create pages and subpages as before
     for (const pageData of pagesData) {
         const mainPage = await prisma.page.create({ data: { name: pageData.name } });
         for (const subpageName of pageData.subpages) {
@@ -69,15 +72,19 @@ async function main(): Promise<void> {
 
     const rolesData = [
         {
+            name: "Super_Admin",
+            permissions: { canView: true, canEdit: true, canDelete: true, canCreate: true },
+        },
+        {
             name: "Admin",
             permissions: { canView: true, canEdit: true, canDelete: true, canCreate: true },
         },
         {
-            name: "Editor",
+            name: "Manager",
             permissions: { canView: true, canEdit: true, canDelete: false, canCreate: true },
         },
         {
-            name: "Viewer",
+            name: "Basic_User",
             permissions: { canView: true, canEdit: false, canDelete: false, canCreate: false },
         },
     ];
@@ -100,8 +107,16 @@ async function main(): Promise<void> {
         }
     }
 
-    // Create 10 users, each assigned a random role
-    for (let i = 1; i <= 10; i++) {
+    await prisma.user.create({
+        data: {
+            email: `user0@example.com`,
+            roles: {
+                connect: { id: createdRoles[0].id },
+            },
+        },
+    });
+
+    for (let i = 1; i <= 9; i++) {
         const randomIndex = Math.floor(Math.random() * createdRoles.length);
         const assignedRole = createdRoles[randomIndex];
         await prisma.user.create({
@@ -112,6 +127,34 @@ async function main(): Promise<void> {
                 },
             },
         });
+    }
+
+    const portfoliosData = [
+        {
+            name: "Portfolio A",
+            groups: [
+                { name: "Group A1", units: ["Unit A1-1", "Unit A1-2"] },
+                { name: "Group A2", units: ["Unit A2-1"] },
+            ],
+        },
+        {
+            name: "Portfolio B",
+            groups: [{ name: "Group B1", units: ["Unit B1-1", "Unit B1-2", "Unit B1-3"] }],
+        },
+    ];
+
+    for (const pData of portfoliosData) {
+        const portfolio = await prisma.portfolio.create({ data: { name: pData.name } });
+        for (const groupData of pData.groups) {
+            const regGroup = await prisma.regulationGroup.create({
+                data: { name: groupData.name, portfolioId: portfolio.id },
+            });
+            for (const unitName of groupData.units) {
+                await prisma.regulationUnit.create({
+                    data: { name: unitName, groupId: regGroup.id },
+                });
+            }
+        }
     }
 }
 
