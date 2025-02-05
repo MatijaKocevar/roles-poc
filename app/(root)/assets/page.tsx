@@ -1,5 +1,13 @@
 import GenericPage from "@/components/GenericPage";
+import { hasViewPermission } from "../../../actions/hasViewPermissions";
+import { redirect } from "next/navigation";
 
-export default function AssetsOverviewPage() {
-    return <GenericPage pageName="Overview" />;
+export default async function AssetsOverviewPage() {
+    const canView = await hasViewPermission("Assets");
+
+    if (!canView) {
+        redirect("/unauthorized");
+    }
+
+    return <GenericPage pageName="Assets" />;
 }

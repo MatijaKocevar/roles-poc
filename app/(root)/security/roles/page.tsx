@@ -1,9 +1,17 @@
 import Link from "next/link";
 import { PrismaClient } from "@prisma/client";
+import { hasViewPermission } from "../../../../actions/hasViewPermissions";
+import { redirect } from "next/navigation";
 
 const prisma = new PrismaClient();
 
 export default async function RolesListPage() {
+    const canView = await hasViewPermission("Role Management");
+
+    if (!canView) {
+        redirect("/unauthorized");
+    }
+
     const roles = await prisma.role.findMany();
 
     return (

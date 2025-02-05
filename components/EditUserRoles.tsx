@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useActiveUser } from "../app/active-user-context";
 
 export default function EditUserRoles({ user, roles }: { user: any; roles: any[] }) {
     const initialRoleIds = user.roles.map((role: any) => role.id);
     const [selectedRoles, setSelectedRoles] = useState<number[]>(initialRoleIds);
     const router = useRouter();
+    const { user: activeUser, setUser } = useActiveUser();
 
     const handleRoleToggle = (roleId: number) => {
         setSelectedRoles((prev) =>
@@ -20,6 +22,15 @@ export default function EditUserRoles({ user, roles }: { user: any; roles: any[]
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ userId: user.id, roleIds: selectedRoles }),
         });
+
+        if (activeUser?.id === user.id) {
+            const res = await fetch(`/api/user?id=${user.id}`);
+
+            if (res.ok) {
+                const newUser = await res.json();
+                setUser(newUser);
+            }
+        }
 
         if (response.ok) {
             router.push("/security/users");

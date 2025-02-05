@@ -118,17 +118,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const filteredNavMain = data.navMain
         .map((item) => {
             if (item.subpages) {
-                const filteredSubpages = item.subpages.filter((sub) =>
+                const allowedSubpages = item.subpages.filter((sub) =>
                     hasPermission(sub.title, "canView")
                 );
-                return { ...item, subpages: filteredSubpages };
+
+                return { ...item, subpages: allowedSubpages };
             }
+
             return item;
         })
         .filter((item) => {
             if (item.subpages) {
-                return hasPermission(item.title, "canView") || item.subpages.length > 0;
+                return hasPermission(item.title, "canView");
             }
+
+            hasPermission(item.title, "canView");
+
             return hasPermission(item.title, "canView");
         });
 
@@ -139,8 +144,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
                             <Link href="/">
-                                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                                    <GalleryVerticalEnd className="size-4" />
+                                <div className="flex aspect-square w-8 h-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                                    <GalleryVerticalEnd className="w-4 h-4" />
                                 </div>
                                 <div className="flex flex-col gap-0.5 leading-none">
                                     <span className="font-semibold">FLEX</span>
@@ -170,19 +175,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                             {expanded[item.title] ? "–" : "+"}
                                         </button>
                                     </div>
-                                    {item.subpages &&
-                                        item.subpages.length > 0 &&
-                                        expanded[item.title] && (
-                                            <div className="ml-4">
-                                                {item.subpages.map((sub) => (
-                                                    <SidebarMenuItem key={sub.title}>
-                                                        <SidebarMenuButton asChild>
-                                                            <Link href={sub.url}>{sub.title}</Link>
-                                                        </SidebarMenuButton>
-                                                    </SidebarMenuItem>
-                                                ))}
-                                            </div>
-                                        )}
+                                    {expanded[item.title] && item.subpages.length > 0 && (
+                                        <div className="ml-4">
+                                            {item.subpages.map((sub) => (
+                                                <SidebarMenuItem key={sub.title}>
+                                                    <SidebarMenuButton asChild>
+                                                        <Link href={sub.url}>{sub.title}</Link>
+                                                    </SidebarMenuButton>
+                                                </SidebarMenuItem>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             ) : (
                                 <SidebarMenuItem key={item.title}>

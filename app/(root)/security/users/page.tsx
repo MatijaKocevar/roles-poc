@@ -1,8 +1,16 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 import UserSwitcher from "@/components/UserSwitcher";
+import { hasViewPermission } from "../../../../actions/hasViewPermissions";
+import { redirect } from "next/navigation";
 
 export default async function UsersPage() {
+    const canView = await hasViewPermission("User Management");
+
+    if (!canView) {
+        redirect("/unauthorized");
+    }
+
     const users = await prisma.user.findMany({ include: { roles: true } });
     return (
         <div className="container mx-auto p-6">

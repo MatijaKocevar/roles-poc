@@ -2,10 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useActiveUser } from "../../../../active-user-context";
 
 export default function NewRolePage() {
     const [roleName, setRoleName] = useState("");
     const router = useRouter();
+    const { hasPermission } = useActiveUser();
+
+    if (!hasPermission("Role Management", "canView")) {
+        router.push("/unauthorized");
+    }
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();

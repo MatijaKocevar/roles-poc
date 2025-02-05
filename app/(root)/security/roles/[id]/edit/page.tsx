@@ -1,7 +1,15 @@
 import EditRolePrivileges from "@/components/EditRolePrivileges";
 import prisma from "@/lib/prisma";
+import { hasViewPermission } from "../../../../../../actions/hasViewPermissions";
+import { redirect } from "next/navigation";
 
 export default async function EditRolePage({ params }: { params: { id: string } }) {
+    const canView = await hasViewPermission("Role Management");
+
+    if (!canView) {
+        redirect("/unauthorized");
+    }
+
     const { id } = await Promise.resolve(params);
     const roleId = parseInt(id, 10);
     const role = await prisma.role.findUnique({
