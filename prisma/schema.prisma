@@ -8,10 +8,20 @@ generator client {
 }
 
 model Role {
-  id          Int          @id @default(autoincrement())
+  id          Int        @id @default(autoincrement())
   name        String
   permissions Permission[]
   users       User[]
+  // (Global roles remain for the app as a whole.)
+}
+
+model User {
+  id                          Int                          @id @default(autoincrement())
+  email                       String                       @unique
+  roles                       Role[]
+  userGroupPermissions        UserGroupPermission[]
+  userPortfolioPermissions    UserPortfolioPermission[]
+  userUnitPermissions         UserUnitPermission[]
 }
 
 model Page {
@@ -36,30 +46,65 @@ model Permission {
   @@unique([roleId, pageId])
 }
 
-model User {
-  id    Int    @id @default(autoincrement())
-  email String @unique
-  roles Role[]
-}
-
 model Portfolio {
-  id          Int                  @id @default(autoincrement())
-  name        String
-  groups      RegulationGroup[]
+  id                         Int                         @id @default(autoincrement())
+  name                       String
+  groups                     RegulationGroup[]
+  userPortfolioPermissions   UserPortfolioPermission[]
 }
 
 model RegulationGroup {
-  id           Int              @id @default(autoincrement())
-  name         String
-  portfolio    Portfolio        @relation(fields: [portfolioId], references: [id])
-  portfolioId  Int
-  units        RegulationUnit[]
+  id                        Int                      @id @default(autoincrement())
+  name                      String
+  portfolio                 Portfolio                @relation(fields: [portfolioId], references: [id])
+  portfolioId               Int
+  units                     RegulationUnit[]
+  userGroupPermissions      UserGroupPermission[]
 }
 
 model RegulationUnit {
-  id         Int              @id @default(autoincrement())
-  name       String
-  group      RegulationGroup  @relation(fields: [groupId], references: [id])
-  groupId    Int
+  id                        Int                      @id @default(autoincrement())
+  name                      String
+  group                     RegulationGroup          @relation(fields: [groupId], references: [id])
+  groupId                   Int
+  userUnitPermissions       UserUnitPermission[]
 }
 
+model UserGroupPermission {
+  id        Int              @id @default(autoincrement())
+  userId    Int
+  groupId   Int
+  canView   Boolean          @default(false)
+  canEdit   Boolean          @default(false)
+  canDelete Boolean          @default(false)
+  canCreate Boolean          @default(false)
+  user      User             @relation(fields: [userId], references: [id])
+  group     RegulationGroup  @relation(fields: [groupId], references: [id])
+  @@unique([userId, groupId])
+}
+
+model UserPortfolioPermission {
+  id           Int         @id @default(autoincrement())
+  userId       Int
+  portfolioId  Int
+  canView      Boolean     @default(false)
+  canEdit      Boolean     @default(false)
+  canDelete    Boolean     @default(false)
+  canCreate    Boolean     @default(false)
+  user         User        @relation(fields: [userId], references: [id])
+  portfolio    Portfolio   @relation(fields: [portfolioId], references: [id])
+  @@unique([userId, portfolioId])
+}
+
+model UserUnitPermission {
+  id        Int                @id @default(autoincrement())
+  userId    Int
+  unitId    Int
+  canView   Boolean            @default(false)
+  canEdit   Boolean            @default(false)
+  canDelete Boolean            @default(false)
+  canCreate Boolean            @default(false)
+  user      User               @relation(fields: [userId], references: [id])
+  unit      RegulationUnit     @relation(fields: [unitId], references: [id])
+  @@unique([userId, unitId])
+}
