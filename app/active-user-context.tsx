@@ -22,7 +22,7 @@ type Role = {
     permissions: RolePermission[];
 };
 
-type ActiveUser = {
+export type ActiveUser = {
     id: number;
     email: string;
     roles: Role[];
@@ -41,20 +41,30 @@ type ActiveUserContextType = {
 
 const ActiveUserContext = createContext<ActiveUserContextType | undefined>(undefined);
 
-export function ActiveUserProvider({
-    children,
-    initialUser,
-}: {
-    children: ReactNode;
-    initialUser: ActiveUser | null;
-}) {
-    const [user, setUser] = useState<ActiveUser | null>(initialUser);
+export function ActiveUserProvider({ children }: { children: ReactNode }) {
+    const [user, setUser] = useState<ActiveUser | null>(null);
     const [permissions, setPermissions] = useState<AggregatedPermissions>({});
+
+    useEffect(() => {
+        async function fetchActiveUser() {
+            try {
+                const res = await fetch("/api/active-user");
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.activeUser) {
+                        setUser(data.activeUser);
+                    }
+                }
+            } catch (err) {
+                console.error("Error fetching active user", err);
+            }
+        }
+        fetchActiveUser();
+    }, []);
 
     useEffect(() => {
         if (user) {
             const agg: AggregatedPermissions = {};
-
             for (const role of user.roles) {
                 for (const perm of role.permissions) {
                     const page = perm.pageName;
@@ -72,9 +82,6 @@ export function ActiveUserProvider({
                     agg[page].canCreate = agg[page].canCreate || perm.permission.canCreate;
                 }
             }
-
-            console.log("Aggregated permissions", agg);
-
             setPermissions(agg);
         } else {
             setPermissions({});
@@ -85,6 +92,10 @@ export function ActiveUserProvider({
         return permissions[pageName]?.[permKey] || false;
     };
 
+    if (user === null) {
+        return <div>Loading...</div>;
+    }
+
     return (
         <ActiveUserContext.Provider value={{ user, permissions, hasPermission, setUser }}>
             {children}
@@ -94,10 +105,8 @@ export function ActiveUserProvider({
 
 export function useActiveUser() {
     const context = useContext(ActiveUserContext);
-
     if (!context) {
         throw new Error("useActiveUser must be used within an ActiveUserProvider");
     }
-
     return context;
 }

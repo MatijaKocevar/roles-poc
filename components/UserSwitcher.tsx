@@ -6,11 +6,20 @@ export default function UserSwitcher({ userId }: { userId: number }) {
     const { setUser } = useActiveUser();
 
     const handleSwitch = async () => {
-        const res = await fetch(`/api/user?id=${userId}`);
+        const res = await fetch("/api/switch-active-user", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId }),
+        });
 
         if (res.ok) {
-            const newUser = await res.json();
-            setUser(newUser);
+            const activeRes = await fetch(`/api/active-user`);
+
+            if (activeRes.ok) {
+                const data = await activeRes.json();
+
+                setUser(data.activeUser);
+            }
         }
     };
 

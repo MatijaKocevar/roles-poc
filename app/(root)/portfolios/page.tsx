@@ -9,7 +9,23 @@ export default async function PortfoliosPage() {
         redirect("/unauthorized");
     }
 
-    const portfolios = await prisma.portfolio.findMany();
+    // Get active user from the ActiveUser model.
+    const active = await prisma.activeUser.findUnique({ where: { id: 1 } });
+    const activeUserId = active?.userId;
+    if (!activeUserId) {
+        return <div>No active user found.</div>;
+    }
+
+    const portfolios = await prisma.portfolio.findMany({
+        where: {
+            userPortfolioPermissions: {
+                some: {
+                    userId: activeUserId,
+                    canView: true,
+                },
+            },
+        },
+    });
 
     return (
         <div className="container mx-auto p-6">

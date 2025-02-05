@@ -108,3 +108,9 @@ model UserUnitPermission {
   unit      RegulationUnit     @relation(fields: [unitId], references: [id])
   @@unique([userId, unitId])
 }
+
+model ActiveUser {
+  id       Int      @id @default(1)
+  userId   Int
+  updatedAt DateTime @updatedAt
+}

@@ -5,12 +5,24 @@ import Link from "next/link";
 
 export default async function RegulationUnitsPage() {
     const canView = await hasViewPermission("Regulation Units");
-
     if (!canView) {
         redirect("/unauthorized");
     }
+    const active = await prisma.activeUser.findUnique({ where: { id: 1 } });
+    const activeUserId = active?.userId;
+    if (!activeUserId) {
+        return <div>No active user found.</div>;
+    }
 
-    const regulationUnits = await prisma.regulationUnit.findMany({
+    const units = await prisma.regulationUnit.findMany({
+        where: {
+            userUnitPermissions: {
+                some: {
+                    userId: activeUserId,
+                    canView: true,
+                },
+            },
+        },
         include: {
             group: {
                 select: {
@@ -36,7 +48,7 @@ export default async function RegulationUnitsPage() {
                     </tr>
                 </thead>
                 <tbody>
-                    {regulationUnits.map((unit) => (
+                    {units.map((unit) => (
                         <tr key={unit.id}>
                             <td className="border border-gray-300 px-4 py-2">{unit.id}</td>
                             <td className="border border-gray-300 px-4 py-2">{unit.name}</td>

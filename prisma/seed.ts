@@ -3,11 +3,12 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function clearData(): Promise<void> {
-    // Clear dependent records in proper order
+    // Clear dependent records in proper order.
     await prisma.permission.deleteMany({});
     await prisma.userPortfolioPermission.deleteMany({});
     await prisma.userGroupPermission.deleteMany({});
     await prisma.userUnitPermission.deleteMany({});
+    await prisma.activeUser.deleteMany({});
     await prisma.user.deleteMany({});
     await prisma.role.deleteMany({});
     await prisma.page.deleteMany({});
@@ -63,7 +64,6 @@ async function main(): Promise<void> {
         },
     ];
 
-    // Create pages and their subpages
     for (const pageData of pagesData) {
         const mainPage = await prisma.page.create({ data: { name: pageData.name } });
         for (const subpageName of pageData.subpages) {
@@ -120,7 +120,7 @@ async function main(): Promise<void> {
             roles: { connect: { id: superAdminRole.id } },
         },
     });
-    // Create nine additional users assigned randomly to one of the roles.
+    // Create nine additional users randomly assigned to one of the roles.
     for (let i = 1; i <= 9; i++) {
         const randomIndex = Math.floor(Math.random() * createdRoles.length);
         const assignedRole = createdRoles[randomIndex];
@@ -232,7 +232,7 @@ async function main(): Promise<void> {
                         canCreate: true,
                     },
                 });
-                const unitsInGroup = allUnits.filter((u) => u.groupId === group.id);
+                const unitsInGroup = allUnits.filter((unit) => unit.groupId === group.id);
                 for (const unit of unitsInGroup) {
                     await prisma.userUnitPermission.create({
                         data: {
@@ -299,6 +299,16 @@ async function main(): Promise<void> {
                 },
             });
         }
+    }
+
+    // --- Set Active User to the First User ---
+    const firstUser = await prisma.user.findFirst();
+    if (firstUser) {
+        await prisma.activeUser.upsert({
+            where: { id: 1 },
+            update: { userId: firstUser.id },
+            create: { id: 1, userId: firstUser.id },
+        });
     }
 }
 
