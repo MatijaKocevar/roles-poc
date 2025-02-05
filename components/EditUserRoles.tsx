@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useActiveUser } from "../app/active-user-context";
+import AdditionalAssignmentForm from "@/components/AdditionalAssignmentForm";
 
 type PermissionType = {
     canView: boolean;
@@ -23,13 +24,11 @@ type EditUserRolesProps = {
 };
 
 export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
-    // Global roles state remains unchanged.
     const initialRoleIds = user.roles.map((r: any) => r.id);
     const [selectedRoles, setSelectedRoles] = useState<number[]>(initialRoleIds);
     const router = useRouter();
     const { user: activeUser, setUser } = useActiveUser();
 
-    // Clone direct permission assignments into local state for editing.
     const [portfolioAssignments, setPortfolioAssignments] = useState<EditableAssignment[]>(
         user.userPortfolioPermissions.map((assignment: any) => ({
             id: assignment.id,
@@ -162,7 +161,8 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
                     </div>
                 ))}
             </div>
-            <div className="flex flex-row justify-between">
+
+            <div className="flex flex-row justify-between ">
                 {/* Portfolio Permissions */}
                 <div>
                     <h2 className="text-xl font-semibold mb-2">Portfolio Permissions</h2>
@@ -170,12 +170,9 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
                         portfolioAssignments.map((assignment) => (
                             <div
                                 key={assignment.id}
-                                className="flex flex-col space-y-1 border p-2 rounded mb-2"
+                                className="flex flex-col border p-2 rounded mb-2"
                             >
-                                <div className="flex items-center space-x-2">
-                                    <span className="font-semibold">Portfolio:</span>
-                                    <span>{assignment.name}</span>
-                                </div>
+                                <div className="font-semibold">Portfolio: {assignment.name}</div>
                                 <div className="flex space-x-4">
                                     {(
                                         [
@@ -219,12 +216,9 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
                         groupAssignments.map((assignment) => (
                             <div
                                 key={assignment.id}
-                                className="flex flex-col space-y-1 border p-2 rounded mb-2"
+                                className="flex flex-col border p-2 rounded mb-2"
                             >
-                                <div className="flex items-center space-x-2">
-                                    <span className="font-semibold">Group:</span>
-                                    <span>{assignment.name}</span>
-                                </div>
+                                <div className="font-semibold">Group: {assignment.name}</div>
                                 <div className="flex space-x-4">
                                     {(
                                         [
@@ -268,12 +262,9 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
                         unitAssignments.map((assignment) => (
                             <div
                                 key={assignment.id}
-                                className="flex flex-col space-y-1 border p-2 rounded mb-2"
+                                className="flex flex-col border p-2 rounded mb-2"
                             >
-                                <div className="flex items-center space-x-2">
-                                    <span className="font-semibold">Unit:</span>
-                                    <span>{assignment.name}</span>
-                                </div>
+                                <div className="font-semibold">Unit: {assignment.name}</div>
                                 <div className="flex space-x-4">
                                     {(
                                         [
@@ -310,6 +301,14 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
                     )}
                 </div>
             </div>
+
+            {/* Additional Assignment Form for Super_Admin */}
+            {activeUser && activeUser.roles.some((r: any) => r.name === "Super_Admin") && (
+                <div className="mt-8">
+                    {/* This component should provide dropdowns for available portfolios, groups, and units */}
+                    <AdditionalAssignmentForm userId={user.id} />
+                </div>
+            )}
         </div>
     );
 }
