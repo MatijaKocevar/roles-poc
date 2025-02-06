@@ -34,7 +34,7 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
     const [portfolioAssignments, setPortfolioAssignments] = useState<EditableAssignment[]>(
         user.userPortfolioPermissions.map((assignment: any) => ({
             id: assignment.id,
-            assignedId: assignment.portfolio.id, // <-- store the portfolio id
+            assignedId: assignment.portfolio.id, // store the portfolio id
             name: assignment.portfolio.name,
             permissions: {
                 canView: assignment.canView,
@@ -48,7 +48,7 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
     const [groupAssignments, setGroupAssignments] = useState<EditableAssignment[]>(
         user.userGroupPermissions.map((assignment: any) => ({
             id: assignment.id,
-            assignedId: assignment.group.id, // <-- store the group id
+            assignedId: assignment.group.id, // store the group id
             name: assignment.group.name,
             permissions: {
                 canView: assignment.canView,
@@ -62,7 +62,7 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
     const [unitAssignments, setUnitAssignments] = useState<EditableAssignment[]>(
         user.userUnitPermissions.map((assignment: any) => ({
             id: assignment.id,
-            assignedId: assignment.unit.id, // <-- store the unit id
+            assignedId: assignment.unit.id, // store the unit id
             name: assignment.unit.name,
             permissions: {
                 canView: assignment.canView,
@@ -73,7 +73,7 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
         }))
     );
 
-    // State to trigger refetches of available options in the AdditionalAssignmentForm.
+    // State to trigger refetches of available options in AdditionalAssignmentForm.
     const [refreshOptions, setRefreshOptions] = useState(0);
 
     const handleRoleToggle = (roleId: number) => {
@@ -103,7 +103,7 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
         );
     };
 
-    // Delete handlers for each permission type; also trigger available options refresh.
+    // Delete handlers for each permission type; trigger refreshOptions so that the child form can update.
     const handleDeletePortfolio = async (id: number) => {
         const res = await fetch("/api/user-portfolio-permissions/delete", {
             method: "DELETE",
@@ -205,6 +205,7 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
         setRefreshOptions((prev) => prev + 1);
     };
 
+    // Only Super_Admin users can modify permissions.
     const isSuperAdmin = activeUser?.roles?.some((r: any) => r.name === "Super_Admin");
 
     return (
@@ -270,6 +271,8 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
                                             <input
                                                 type="checkbox"
                                                 checked={assignment.permissions[field]}
+                                                // Only Super_Admin can change permissions.
+                                                disabled={!isSuperAdmin}
                                                 onChange={() =>
                                                     handlePermissionChange(
                                                         portfolioAssignments,
@@ -326,6 +329,7 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
                                             <input
                                                 type="checkbox"
                                                 checked={assignment.permissions[field]}
+                                                disabled={!isSuperAdmin}
                                                 onChange={() =>
                                                     handlePermissionChange(
                                                         groupAssignments,
@@ -382,6 +386,7 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
                                             <input
                                                 type="checkbox"
                                                 checked={assignment.permissions[field]}
+                                                disabled={!isSuperAdmin}
                                                 onChange={() =>
                                                     handlePermissionChange(
                                                         unitAssignments,
