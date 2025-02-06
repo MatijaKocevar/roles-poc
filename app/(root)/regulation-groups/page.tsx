@@ -3,6 +3,8 @@ import { hasViewPermission } from "../../../actions/hasViewPermissions";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 export default async function RegulationGroupsPage() {
     const canView = await hasViewPermission("Regulation Groups");
     if (!canView) {

@@ -4,6 +4,8 @@ import UserSwitcher from "@/components/UserSwitcher";
 import { hasViewPermission } from "../../../../actions/hasViewPermissions";
 import { redirect } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 export default async function UsersPage() {
     const canView = await hasViewPermission("User Management");
 
