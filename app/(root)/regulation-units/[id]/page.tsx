@@ -3,7 +3,13 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { hasViewPermission } from "../../../../actions/hasViewPermissions";
 
-export default async function RegulationUnitDetailsPage({ params }: { params: { id: string } }) {
+export default async function RegulationUnitDetailsPage({
+    params: asyncParams,
+}: {
+    params: Promise<{ id: string }>;
+}) {
+    const params = await asyncParams;
+
     const canView = await hasViewPermission("Regulation Units");
     if (!canView) {
         redirect("/unauthorized");

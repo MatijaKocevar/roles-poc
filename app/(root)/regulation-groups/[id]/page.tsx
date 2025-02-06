@@ -3,7 +3,13 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { hasViewPermission } from "../../../../actions/hasViewPermissions";
 
-export default async function RegulationGroupDetailsPage({ params }: { params: { id: string } }) {
+export default async function RegulationGroupDetailsPage({
+    params: asyncParams,
+}: {
+    params: Promise<{ id: string }>;
+}) {
+    const params = await asyncParams;
+
     const canView = await hasViewPermission("Regulation Groups");
     if (!canView) {
         redirect("/unauthorized");

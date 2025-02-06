@@ -3,7 +3,13 @@ import prisma from "@/lib/prisma";
 import { hasViewPermission } from "../../../../../../actions/hasViewPermissions";
 import { redirect } from "next/navigation";
 
-export default async function EditRolePage({ params }: { params: { id: string } }) {
+export default async function EditRolePage({
+    params: asyncParams,
+}: {
+    params: Promise<{ id: string }>;
+}) {
+    const params = await asyncParams;
+
     const canView = await hasViewPermission("Role Management");
 
     if (!canView) {

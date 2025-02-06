@@ -3,7 +3,13 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { hasViewPermission } from "../../../../actions/hasViewPermissions";
 
-export default async function PortfolioDetailsPage({ params }: { params: { id: string } }) {
+export default async function PortfolioDetailsPage({
+    params: asyncParams,
+}: {
+    params: Promise<{ id: string }>;
+}) {
+    const params = await asyncParams;
+
     const canView = await hasViewPermission("Portfolios");
     if (!canView) {
         redirect("/unauthorized");

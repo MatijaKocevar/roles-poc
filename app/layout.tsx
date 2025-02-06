@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import prisma from "@/lib/prisma";
 import { ActiveUserProvider } from "./active-user-context";
 
 const geistSans = Geist({
@@ -24,41 +23,10 @@ export default async function RootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    const activeUser = await prisma.user.findFirst({
-        include: {
-            roles: {
-                include: { permissions: { include: { page: true } } },
-            },
-        },
-    });
-
-    let transformedUser = null;
-    if (activeUser) {
-        transformedUser = {
-            id: activeUser.id,
-            email: activeUser.email,
-            roles: activeUser.roles.map((role) => ({
-                id: role.id,
-                name: role.name,
-                permissions: role.permissions.map((perm) => ({
-                    roleId: role.id,
-                    pageId: perm.pageId,
-                    pageName: perm.page.name,
-                    permission: {
-                        canView: perm.canView,
-                        canEdit: perm.canEdit,
-                        canDelete: perm.canDelete,
-                        canCreate: perm.canCreate,
-                    },
-                })),
-            })),
-        };
-    }
-
     return (
         <html lang="en">
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-                <ActiveUserProvider initialUser={transformedUser}>{children}</ActiveUserProvider>
+                <ActiveUserProvider>{children}</ActiveUserProvider>
             </body>
         </html>
     );
