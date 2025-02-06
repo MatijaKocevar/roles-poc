@@ -3,6 +3,8 @@ import { PrismaClient } from "@prisma/client";
 import { hasViewPermission } from "../../../../actions/hasViewPermissions";
 import { redirect } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 const prisma = new PrismaClient();
 
 export default async function RolesListPage() {
