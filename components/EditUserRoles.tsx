@@ -68,6 +68,9 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
         }))
     );
 
+    // Use this state to trigger refetches of available options in AdditionalAssignmentForm
+    const [refreshOptions, setRefreshOptions] = useState(0);
+
     const handleRoleToggle = (roleId: number) => {
         setSelectedRoles((prev) =>
             prev.includes(roleId) ? prev.filter((id) => id !== roleId) : [...prev, roleId]
@@ -95,7 +98,7 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
         );
     };
 
-    // Delete handlers for each permission type
+    // Delete handlers for each permission type; also trigger available options refresh
     const handleDeletePortfolio = async (id: number) => {
         const res = await fetch("/api/user-portfolio-permissions/delete", {
             method: "DELETE",
@@ -105,6 +108,7 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
         const data = await res.json();
         if (data.success) {
             setPortfolioAssignments((prev) => prev.filter((assignment) => assignment.id !== id));
+            setRefreshOptions((prev) => prev + 1);
         } else {
             console.error("Error deleting portfolio permission", data.error);
         }
@@ -119,6 +123,7 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
         const data = await res.json();
         if (data.success) {
             setGroupAssignments((prev) => prev.filter((assignment) => assignment.id !== id));
+            setRefreshOptions((prev) => prev + 1);
         } else {
             console.error("Error deleting group permission", data.error);
         }
@@ -133,6 +138,7 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
         const data = await res.json();
         if (data.success) {
             setUnitAssignments((prev) => prev.filter((assignment) => assignment.id !== id));
+            setRefreshOptions((prev) => prev + 1);
         } else {
             console.error("Error deleting unit permission", data.error);
         }
@@ -178,7 +184,21 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
         }
     };
 
-    // Check if the current user is a Super_Admin
+    const handleNewAssignment = (
+        type: "portfolio" | "group" | "unit",
+        newAssignment: { id: number; name: string; permissions: PermissionType }
+    ) => {
+        if (type === "portfolio") {
+            setPortfolioAssignments((prev) => [...prev, newAssignment]);
+        } else if (type === "group") {
+            setGroupAssignments((prev) => [...prev, newAssignment]);
+        } else if (type === "unit") {
+            setUnitAssignments((prev) => [...prev, newAssignment]);
+        }
+
+        setRefreshOptions((prev) => prev + 1);
+    };
+
     const isSuperAdmin = activeUser?.roles?.some((r: any) => r.name === "Super_Admin");
 
     return (
@@ -383,7 +403,11 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
             {/* Additional Assignment Form for Super_Admin */}
             {isSuperAdmin && (
                 <div className="mt-8">
-                    <AdditionalAssignmentForm userId={user.id} />
+                    <AdditionalAssignmentForm
+                        userId={user.id}
+                        onAssignmentAdded={handleNewAssignment}
+                        refreshOptions={refreshOptions}
+                    />
                 </div>
             )}
         </div>

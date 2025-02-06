@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 
 type Option = {
     id: number;
@@ -15,9 +14,21 @@ type PermissionType = {
     canCreate: boolean;
 };
 
-export default function AdditionalAssignmentForm({ userId }: { userId: number }) {
-    const router = useRouter();
+type AdditionalAssignmentFormProps = {
+    userId: number;
+    onAssignmentAdded: (
+        type: "portfolio" | "group" | "unit",
+        newAssignment: { id: number; name: string; permissions: PermissionType }
+    ) => void;
+    // Used to trigger re-fetching of available options when assignments change.
+    refreshOptions: number;
+};
 
+export default function AdditionalAssignmentForm({
+    userId,
+    onAssignmentAdded,
+    refreshOptions,
+}: AdditionalAssignmentFormProps) {
     const [availablePortfolios, setAvailablePortfolios] = useState<Option[]>([]);
     const [availableGroups, setAvailableGroups] = useState<Option[]>([]);
     const [availableUnits, setAvailableUnits] = useState<Option[]>([]);
@@ -33,6 +44,7 @@ export default function AdditionalAssignmentForm({ userId }: { userId: number })
         canCreate: false,
     });
 
+    // Re-fetch available portfolios when userId or refreshOptions changes
     useEffect(() => {
         async function fetchPortfolios() {
             const res = await fetch(`/api/available/portfolio?userId=${userId}`);
@@ -42,10 +54,14 @@ export default function AdditionalAssignmentForm({ userId }: { userId: number })
             }
         }
         fetchPortfolios();
-    }, [userId]);
+    }, [userId, refreshOptions]);
 
+    // Re-fetch available groups when selectedPortfolio or refreshOptions changes
     useEffect(() => {
-        if (!selectedPortfolio) return;
+        if (!selectedPortfolio) {
+            setAvailableGroups([]);
+            return;
+        }
         async function fetchGroups() {
             const res = await fetch(
                 `/api/available/group?userId=${userId}&portfolioId=${selectedPortfolio}`
@@ -56,10 +72,14 @@ export default function AdditionalAssignmentForm({ userId }: { userId: number })
             }
         }
         fetchGroups();
-    }, [selectedPortfolio, userId]);
+    }, [selectedPortfolio, userId, refreshOptions]);
 
+    // Re-fetch available units when selectedGroup or refreshOptions changes
     useEffect(() => {
-        if (!selectedGroup) return;
+        if (!selectedGroup) {
+            setAvailableUnits([]);
+            return;
+        }
         async function fetchUnits() {
             const res = await fetch(
                 `/api/available/unit?userId=${userId}&groupId=${selectedGroup}`
@@ -70,7 +90,7 @@ export default function AdditionalAssignmentForm({ userId }: { userId: number })
             }
         }
         fetchUnits();
-    }, [selectedGroup, userId]);
+    }, [selectedGroup, userId, refreshOptions]);
 
     const handlePermissionToggle = (field: keyof PermissionType) => {
         setPermissions((prev) => ({ ...prev, [field]: !prev[field] }));
@@ -110,8 +130,46 @@ export default function AdditionalAssignmentForm({ userId }: { userId: number })
         });
 
         if (res.ok) {
-            router.refresh();
-            window.location.reload();
+            const newAssignment = await res.json();
+
+            const assignment = newAssignment.result;
+
+            console.log("newAssignment", newAssignment);
+
+            let name = "";
+            if (type === "portfolio") {
+                const found = availablePortfolios.find((p) => p.id === assignment.portfolioId);
+                name = found ? found.name : `Portfolio ${assignment.portfolioId}`;
+            } else if (type === "group") {
+                const found = availableGroups.find((g) => g.id === assignment.groupId);
+                name = found ? found.name : `Group ${assignment.groupId}`;
+            } else if (type === "unit") {
+                const found = availableUnits.find((u) => u.id === assignment.unitId);
+                name = found ? found.name : `Unit ${assignment.unitId}`;
+            }
+
+            onAssignmentAdded(type, {
+                id: newAssignment.result.id,
+                name: name,
+                permissions: {
+                    canCreate: newAssignment.result.canCreate,
+                    canDelete: newAssignment.result.canDelete,
+                    canEdit: newAssignment.result.canEdit,
+                    canView: newAssignment.result.canView,
+                },
+            });
+            // Reset form selections
+            setSelectedPortfolio("");
+            setSelectedGroup("");
+            setSelectedUnit("");
+            setAvailableGroups([]);
+            setAvailableUnits([]);
+            setPermissions({
+                canView: false,
+                canEdit: false,
+                canDelete: false,
+                canCreate: false,
+            });
         } else {
             const data = await res.json();
             console.error("Assignment failed", data.error);
