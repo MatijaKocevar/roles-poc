@@ -95,6 +95,49 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
         );
     };
 
+    // Delete handlers for each permission type
+    const handleDeletePortfolio = async (id: number) => {
+        const res = await fetch("/api/user-portfolio-permissions/delete", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id }),
+        });
+        const data = await res.json();
+        if (data.success) {
+            setPortfolioAssignments((prev) => prev.filter((assignment) => assignment.id !== id));
+        } else {
+            console.error("Error deleting portfolio permission", data.error);
+        }
+    };
+
+    const handleDeleteGroup = async (id: number) => {
+        const res = await fetch("/api/user-group-permissions/delete", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id }),
+        });
+        const data = await res.json();
+        if (data.success) {
+            setGroupAssignments((prev) => prev.filter((assignment) => assignment.id !== id));
+        } else {
+            console.error("Error deleting group permission", data.error);
+        }
+    };
+
+    const handleDeleteUnit = async (id: number) => {
+        const res = await fetch("/api/user-unit-permissions/delete", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id }),
+        });
+        const data = await res.json();
+        if (data.success) {
+            setUnitAssignments((prev) => prev.filter((assignment) => assignment.id !== id));
+        } else {
+            console.error("Error deleting unit permission", data.error);
+        }
+    };
+
     const handleSave = async () => {
         const response = await fetch("/api/user-roles", {
             method: "POST",
@@ -135,6 +178,9 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
         }
     };
 
+    // Check if the current user is a Super_Admin
+    const isSuperAdmin = activeUser?.roles?.some((r: any) => r.name === "Super_Admin");
+
     return (
         <div className="container mx-auto p-6 space-y-8">
             <div className="flex flex-row justify-between items-center">
@@ -172,7 +218,19 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
                                 key={assignment.id}
                                 className="flex flex-col border p-2 rounded mb-2"
                             >
-                                <div className="font-semibold">Portfolio: {assignment.name}</div>
+                                <div className="flex justify-between items-center">
+                                    <div className="font-semibold">
+                                        Portfolio: {assignment.name}
+                                    </div>
+                                    {isSuperAdmin && (
+                                        <button
+                                            onClick={() => handleDeletePortfolio(assignment.id)}
+                                            className="text-red-500 hover:underline"
+                                        >
+                                            Delete
+                                        </button>
+                                    )}
+                                </div>
                                 <div className="flex space-x-4">
                                     {(
                                         [
@@ -218,7 +276,17 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
                                 key={assignment.id}
                                 className="flex flex-col border p-2 rounded mb-2"
                             >
-                                <div className="font-semibold">Group: {assignment.name}</div>
+                                <div className="flex justify-between items-center">
+                                    <div className="font-semibold">Group: {assignment.name}</div>
+                                    {isSuperAdmin && (
+                                        <button
+                                            onClick={() => handleDeleteGroup(assignment.id)}
+                                            className="text-red-500 hover:underline"
+                                        >
+                                            Delete
+                                        </button>
+                                    )}
+                                </div>
                                 <div className="flex space-x-4">
                                     {(
                                         [
@@ -264,7 +332,17 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
                                 key={assignment.id}
                                 className="flex flex-col border p-2 rounded mb-2"
                             >
-                                <div className="font-semibold">Unit: {assignment.name}</div>
+                                <div className="flex justify-between items-center">
+                                    <div className="font-semibold">Unit: {assignment.name}</div>
+                                    {isSuperAdmin && (
+                                        <button
+                                            onClick={() => handleDeleteUnit(assignment.id)}
+                                            className="text-red-500 hover:underline"
+                                        >
+                                            Delete
+                                        </button>
+                                    )}
+                                </div>
                                 <div className="flex space-x-4">
                                     {(
                                         [
@@ -303,9 +381,8 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
             </div>
 
             {/* Additional Assignment Form for Super_Admin */}
-            {activeUser && activeUser.roles.some((r: any) => r.name === "Super_Admin") && (
+            {isSuperAdmin && (
                 <div className="mt-8">
-                    {/* This component should provide dropdowns for available portfolios, groups, and units */}
                     <AdditionalAssignmentForm userId={user.id} />
                 </div>
             )}

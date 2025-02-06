@@ -111,6 +111,7 @@ export default function AdditionalAssignmentForm({ userId }: { userId: number })
 
         if (res.ok) {
             router.refresh();
+            window.location.reload();
         } else {
             const data = await res.json();
             console.error("Assignment failed", data.error);
