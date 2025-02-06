@@ -13,7 +13,8 @@ type PermissionType = {
 };
 
 type EditableAssignment = {
-    id: number;
+    id: number; // the assignment record id
+    assignedId: number; // the actual option id (portfolio, group, or unit)
     name: string;
     permissions: PermissionType;
 };
@@ -29,9 +30,11 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
     const router = useRouter();
     const { user: activeUser, setUser } = useActiveUser();
 
+    // Map assignments to include the actual option id as assignedId.
     const [portfolioAssignments, setPortfolioAssignments] = useState<EditableAssignment[]>(
         user.userPortfolioPermissions.map((assignment: any) => ({
             id: assignment.id,
+            assignedId: assignment.portfolio.id, // <-- store the portfolio id
             name: assignment.portfolio.name,
             permissions: {
                 canView: assignment.canView,
@@ -45,6 +48,7 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
     const [groupAssignments, setGroupAssignments] = useState<EditableAssignment[]>(
         user.userGroupPermissions.map((assignment: any) => ({
             id: assignment.id,
+            assignedId: assignment.group.id, // <-- store the group id
             name: assignment.group.name,
             permissions: {
                 canView: assignment.canView,
@@ -58,6 +62,7 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
     const [unitAssignments, setUnitAssignments] = useState<EditableAssignment[]>(
         user.userUnitPermissions.map((assignment: any) => ({
             id: assignment.id,
+            assignedId: assignment.unit.id, // <-- store the unit id
             name: assignment.unit.name,
             permissions: {
                 canView: assignment.canView,
@@ -68,7 +73,7 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
         }))
     );
 
-    // Use this state to trigger refetches of available options in AdditionalAssignmentForm
+    // State to trigger refetches of available options in the AdditionalAssignmentForm.
     const [refreshOptions, setRefreshOptions] = useState(0);
 
     const handleRoleToggle = (roleId: number) => {
@@ -98,7 +103,7 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
         );
     };
 
-    // Delete handlers for each permission type; also trigger available options refresh
+    // Delete handlers for each permission type; also trigger available options refresh.
     const handleDeletePortfolio = async (id: number) => {
         const res = await fetch("/api/user-portfolio-permissions/delete", {
             method: "DELETE",
@@ -184,9 +189,11 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
         }
     };
 
+    // Callback passed to AdditionalAssignmentForm to update parent's assignments when a new one is added.
+    // The newAssignment includes an "assignedId" field.
     const handleNewAssignment = (
         type: "portfolio" | "group" | "unit",
-        newAssignment: { id: number; name: string; permissions: PermissionType }
+        newAssignment: { id: number; assignedId: number; name: string; permissions: PermissionType }
     ) => {
         if (type === "portfolio") {
             setPortfolioAssignments((prev) => [...prev, newAssignment]);
@@ -195,7 +202,6 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
         } else if (type === "unit") {
             setUnitAssignments((prev) => [...prev, newAssignment]);
         }
-
         setRefreshOptions((prev) => prev + 1);
     };
 
@@ -407,6 +413,9 @@ export default function EditUserRoles({ user, roles }: EditUserRolesProps) {
                         userId={user.id}
                         onAssignmentAdded={handleNewAssignment}
                         refreshOptions={refreshOptions}
+                        existingPortfolioIds={portfolioAssignments.map((a) => a.assignedId)}
+                        existingGroupIds={groupAssignments.map((a) => a.assignedId)}
+                        existingUnitIds={unitAssignments.map((a) => a.assignedId)}
                     />
                 </div>
             )}

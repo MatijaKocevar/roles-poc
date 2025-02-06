@@ -18,16 +18,21 @@ type AdditionalAssignmentFormProps = {
     userId: number;
     onAssignmentAdded: (
         type: "portfolio" | "group" | "unit",
-        newAssignment: { id: number; name: string; permissions: PermissionType }
+        newAssignment: { id: number; assignedId: number; name: string; permissions: PermissionType }
     ) => void;
-    // Used to trigger re-fetching of available options when assignments change.
     refreshOptions: number;
+    existingPortfolioIds: number[];
+    existingGroupIds: number[];
+    existingUnitIds: number[];
 };
 
 export default function AdditionalAssignmentForm({
     userId,
     onAssignmentAdded,
     refreshOptions,
+    existingPortfolioIds,
+    existingGroupIds,
+    existingUnitIds,
 }: AdditionalAssignmentFormProps) {
     const [availablePortfolios, setAvailablePortfolios] = useState<Option[]>([]);
     const [availableGroups, setAvailableGroups] = useState<Option[]>([]);
@@ -44,7 +49,7 @@ export default function AdditionalAssignmentForm({
         canCreate: false,
     });
 
-    // Re-fetch available portfolios when userId or refreshOptions changes
+    // Always fetch all available options
     useEffect(() => {
         async function fetchPortfolios() {
             const res = await fetch(`/api/available/portfolio?userId=${userId}`);
@@ -56,7 +61,6 @@ export default function AdditionalAssignmentForm({
         fetchPortfolios();
     }, [userId, refreshOptions]);
 
-    // Re-fetch available groups when selectedPortfolio or refreshOptions changes
     useEffect(() => {
         if (!selectedPortfolio) {
             setAvailableGroups([]);
@@ -74,7 +78,6 @@ export default function AdditionalAssignmentForm({
         fetchGroups();
     }, [selectedPortfolio, userId, refreshOptions]);
 
-    // Re-fetch available units when selectedGroup or refreshOptions changes
     useEffect(() => {
         if (!selectedGroup) {
             setAvailableUnits([]);
@@ -118,6 +121,22 @@ export default function AdditionalAssignmentForm({
             return;
         }
 
+        // Duplicate-check only for the type we intend to add.
+        if (type === "portfolio" && existingPortfolioIds.includes(id)) {
+            alert(
+                "This portfolio is already assigned. If you want to add groups or units for this portfolio, please select a group or unit."
+            );
+            return; // Do not clear the form so user can choose a group/unit.
+        }
+        if (type === "group" && existingGroupIds.includes(id)) {
+            alert("This group is already assigned.");
+            return;
+        }
+        if (type === "unit" && existingUnitIds.includes(id)) {
+            alert("This unit is already assigned.");
+            return;
+        }
+
         const res = await fetch("/api/assign-permission", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -131,11 +150,9 @@ export default function AdditionalAssignmentForm({
 
         if (res.ok) {
             const newAssignment = await res.json();
-
             const assignment = newAssignment.result;
 
-            console.log("newAssignment", newAssignment);
-
+            // Determine a display name.
             let name = "";
             if (type === "portfolio") {
                 const found = availablePortfolios.find((p) => p.id === assignment.portfolioId);
@@ -148,17 +165,25 @@ export default function AdditionalAssignmentForm({
                 name = found ? found.name : `Unit ${assignment.unitId}`;
             }
 
+            // Call parent's callback with the new assignment.
             onAssignmentAdded(type, {
-                id: newAssignment.result.id,
-                name: name,
+                id: assignment.id, // assignment record id
+                assignedId:
+                    type === "portfolio"
+                        ? assignment.portfolioId
+                        : type === "group"
+                        ? assignment.groupId
+                        : assignment.unitId,
+                name,
                 permissions: {
-                    canCreate: newAssignment.result.canCreate,
-                    canDelete: newAssignment.result.canDelete,
-                    canEdit: newAssignment.result.canEdit,
-                    canView: newAssignment.result.canView,
+                    canView: assignment.canView,
+                    canEdit: assignment.canEdit,
+                    canDelete: assignment.canDelete,
+                    canCreate: assignment.canCreate,
                 },
             });
-            // Reset form selections
+
+            // Clear the form selections upon success.
             setSelectedPortfolio("");
             setSelectedGroup("");
             setSelectedUnit("");
@@ -185,6 +210,7 @@ export default function AdditionalAssignmentForm({
                     value={selectedPortfolio}
                     onChange={(e) => {
                         setSelectedPortfolio(e.target.value ? Number(e.target.value) : "");
+                        // When a new portfolio is selected, clear downstream selections.
                         setSelectedGroup("");
                         setAvailableGroups([]);
                         setSelectedUnit("");
