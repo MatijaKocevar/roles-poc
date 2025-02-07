@@ -22,14 +22,14 @@ export default async function EditRolePage({
     const roleId = parseInt(id, 10);
     const role = await prisma.role.findUnique({
         where: { id: roleId },
-        include: { permissions: { include: { page: true } } },
+        include: { permissions: { include: { module: true } } },
     });
-    const pages = await prisma.page.findMany({
+    const modules = await prisma.module.findMany({
         where: { parentId: null },
-        include: { subpages: true },
+        include: { submodules: true },
     });
 
     if (!role) return <div>Role not found</div>;
 
-    return <EditRolePrivileges role={role} pages={pages} />;
+    return <EditRolePrivileges role={role} modules={modules} />;
 }

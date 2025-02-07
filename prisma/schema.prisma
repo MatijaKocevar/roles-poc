@@ -24,26 +24,26 @@ model User {
   userUnitPermissions         UserUnitPermission[]
 }
 
-model Page {
+model Module {
   id          Int      @id @default(autoincrement())
   name        String
   parentId    Int?
-  parent      Page?    @relation("Subpages", fields: [parentId], references: [id])
-  subpages    Page[]   @relation("Subpages")
+  parent      Module?    @relation("Submodules", fields: [parentId], references: [id])
+  submodules  Module[]   @relation("Submodules")
   permissions Permission[]
 }
 
 model Permission {
   id        Int     @id @default(autoincrement())
   roleId    Int
-  pageId    Int
+  moduleId  Int
   canView   Boolean @default(false)
   canEdit   Boolean @default(false)
   canDelete Boolean @default(false)
   canCreate Boolean @default(false)
   role      Role    @relation(fields: [roleId], references: [id])
-  page      Page    @relation(fields: [pageId], references: [id])
-  @@unique([roleId, pageId])
+  module    Module    @relation(fields: [moduleId], references: [id])
+  @@unique([roleId, moduleId])
 }
 
 model Portfolio {

@@ -4,7 +4,7 @@ import { useActiveUser } from "../app/active-user-context";
 
 type PermissionField = "canView" | "canEdit" | "canDelete" | "canCreate";
 
-export default function EditRolePrivileges({ role, pages }: { role: any; pages: any[] }) {
+export default function EditRolePrivileges({ role, modules }: { role: any; modules: any[] }) {
     const { user, setUser } = useActiveUser();
 
     const initialPermissions: {
@@ -16,7 +16,7 @@ export default function EditRolePrivileges({ role, pages }: { role: any; pages: 
         };
     } = {};
     role.permissions.forEach((perm: any) => {
-        initialPermissions[perm.page.id] = {
+        initialPermissions[perm.module.id] = {
             canView: perm.canView,
             canEdit: perm.canEdit,
             canDelete: perm.canDelete,
@@ -24,10 +24,10 @@ export default function EditRolePrivileges({ role, pages }: { role: any; pages: 
         };
     });
     const [permissions, setPermissions] = useState(initialPermissions);
-    const togglePermission = (pageId: number, field: PermissionField) => {
+    const togglePermission = (moduleId: number, field: PermissionField) => {
         setPermissions((prev) => ({
             ...prev,
-            [pageId]: { ...prev[pageId], [field]: !prev[pageId]?.[field] },
+            [moduleId]: { ...prev[moduleId], [field]: !prev[moduleId]?.[field] },
         }));
     };
     const handleSave = async () => {
@@ -59,46 +59,46 @@ export default function EditRolePrivileges({ role, pages }: { role: any; pages: 
                     Save Changes
                 </button>
             </div>
-            {pages.map((page) => (
-                <div key={page.id} className="mb-4 border rounded p-4">
-                    <h2 className="text-xl font-semibold">{page.name}</h2>
+            {modules.map((module) => (
+                <div key={module.id} className="mb-4 border rounded p-4">
+                    <h2 className="text-xl font-semibold">{module.name}</h2>
                     <div className="flex space-x-4 mb-4">
                         <label>
                             <input
                                 type="checkbox"
-                                checked={permissions[page.id]?.canView ?? false}
-                                onChange={() => togglePermission(page.id, "canView")}
+                                checked={permissions[module.id]?.canView ?? false}
+                                onChange={() => togglePermission(module.id, "canView")}
                             />
                             <span className="ml-1">View</span>
                         </label>
                         <label>
                             <input
                                 type="checkbox"
-                                checked={permissions[page.id]?.canEdit ?? false}
-                                onChange={() => togglePermission(page.id, "canEdit")}
+                                checked={permissions[module.id]?.canEdit ?? false}
+                                onChange={() => togglePermission(module.id, "canEdit")}
                             />
                             <span className="ml-1">Edit</span>
                         </label>
                         <label>
                             <input
                                 type="checkbox"
-                                checked={permissions[page.id]?.canDelete ?? false}
-                                onChange={() => togglePermission(page.id, "canDelete")}
+                                checked={permissions[module.id]?.canDelete ?? false}
+                                onChange={() => togglePermission(module.id, "canDelete")}
                             />
                             <span className="ml-1">Delete</span>
                         </label>
                         <label>
                             <input
                                 type="checkbox"
-                                checked={permissions[page.id]?.canCreate ?? false}
-                                onChange={() => togglePermission(page.id, "canCreate")}
+                                checked={permissions[module.id]?.canCreate ?? false}
+                                onChange={() => togglePermission(module.id, "canCreate")}
                             />
                             <span className="ml-1">Create</span>
                         </label>
                     </div>
-                    {page.subpages.length > 0 && (
+                    {module.submodules.length > 0 && (
                         <div className="ml-4">
-                            {page.subpages.map((sub: any) => (
+                            {module.submodules.map((sub: any) => (
                                 <div key={sub.id} className="mb-2">
                                     <h3 className="text-lg">{sub.name}</h3>
                                     <div className="flex space-x-4">

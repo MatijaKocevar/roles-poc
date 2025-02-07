@@ -21,7 +21,7 @@ const data = {
         {
             title: "Billing & Payments",
             url: "/billing-payments",
-            subpages: [
+            submodules: [
                 { title: "Invoices", url: "/billing-payments/invoices" },
                 { title: "Payment Methods", url: "/billing-payments/payment-methods" },
                 { title: "Payment History", url: "/billing-payments/payment-history" },
@@ -30,7 +30,7 @@ const data = {
         {
             title: "Contracts",
             url: "/contracts",
-            subpages: [
+            submodules: [
                 { title: "Overview", url: "/contracts/overview" },
                 { title: "Manage Contracts", url: "/contracts/manage" },
             ],
@@ -38,7 +38,7 @@ const data = {
         {
             title: "Marketing",
             url: "/marketing",
-            subpages: [
+            submodules: [
                 { title: "Campaigns", url: "/marketing/campaigns" },
                 { title: "Leads", url: "/marketing/leads" },
                 { title: "Performance", url: "/marketing/performance" },
@@ -47,7 +47,7 @@ const data = {
         {
             title: "Monitoring",
             url: "/monitoring",
-            subpages: [
+            submodules: [
                 { title: "System Status", url: "/monitoring/system-status" },
                 { title: "Logs", url: "/monitoring/logs" },
                 { title: "Alerts", url: "/monitoring/alerts" },
@@ -56,22 +56,22 @@ const data = {
         {
             title: "Portfolios",
             url: "/portfolios",
-            subpages: [],
+            submodules: [],
         },
         {
             title: "Regulation Groups",
             url: "/regulation-groups",
-            subpages: [],
+            submodules: [],
         },
         {
             title: "Regulation Units",
             url: "/regulation-units",
-            subpages: [],
+            submodules: [],
         },
         {
             title: "Dashboard",
             url: "/dashboard",
-            subpages: [
+            submodules: [
                 { title: "Summary", url: "/dashboard/summary" },
                 { title: "Notifications", url: "/dashboard/notifications" },
                 { title: "Activity Log", url: "/dashboard/activity-log" },
@@ -80,7 +80,7 @@ const data = {
         {
             title: "Security",
             url: "/security",
-            subpages: [
+            submodules: [
                 { title: "User Management", url: "/security/users" },
                 { title: "Role Management", url: "/security/roles" },
                 { title: "Audit Logs", url: "/security/audit-logs" },
@@ -89,7 +89,7 @@ const data = {
         {
             title: "Settings",
             url: "/settings",
-            subpages: [
+            submodules: [
                 { title: "General", url: "/settings/general" },
                 { title: "Preferences", url: "/settings/preferences" },
                 { title: "Integrations", url: "/settings/integrations" },
@@ -98,7 +98,7 @@ const data = {
         {
             title: "System Settings",
             url: "/system-settings",
-            subpages: [],
+            submodules: [],
         },
     ],
 };
@@ -112,23 +112,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
     const filteredNavMain = data.navMain
         .map((item) => {
-            if (item.subpages) {
-                const allowedSubpages = item.subpages.filter((sub) =>
+            if (item.submodules) {
+                const allowedSubmodules = item.submodules.filter((sub) =>
                     hasPermission(sub.title, "canView")
                 );
 
-                return { ...item, subpages: allowedSubpages };
+                return { ...item, submodules: allowedSubmodules };
             }
 
             return item;
         })
         .filter((item) => {
-            if (item.subpages) {
-                return hasPermission(item.title, "canView");
-            }
-
-            hasPermission(item.title, "canView");
-
             return hasPermission(item.title, "canView");
         });
 
@@ -155,7 +149,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <SidebarGroup>
                     <SidebarMenu>
                         {filteredNavMain.map((item) =>
-                            item.subpages ? (
+                            item.submodules ? (
                                 <div key={item.title}>
                                     <div className="flex items-center justify-between">
                                         <SidebarMenuItem>
@@ -170,9 +164,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                             {expanded[item.title] ? "–" : "+"}
                                         </button>
                                     </div>
-                                    {expanded[item.title] && item.subpages.length > 0 && (
+                                    {expanded[item.title] && item.submodules.length > 0 && (
                                         <div className="ml-4">
-                                            {item.subpages.map((sub) => (
+                                            {item.submodules.map((sub) => (
                                                 <SidebarMenuItem key={sub.title}>
                                                     <SidebarMenuButton asChild>
                                                         <Link href={sub.url}>{sub.title}</Link>

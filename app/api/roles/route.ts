@@ -6,12 +6,12 @@ export async function POST(request: Request) {
     const role = await prisma.role.create({
         data: { name },
     });
-    const pages = await prisma.page.findMany();
-    for (const page of pages) {
+    const modules = await prisma.module.findMany();
+    for (const moduleObject of modules) {
         await prisma.permission.create({
             data: {
                 roleId: role.id,
-                pageId: page.id,
+                moduleId: moduleObject.id,
                 canView: false,
                 canEdit: false,
                 canDelete: false,

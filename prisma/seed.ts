@@ -11,7 +11,7 @@ async function clearData(): Promise<void> {
     await prisma.activeUser.deleteMany({});
     await prisma.user.deleteMany({});
     await prisma.role.deleteMany({});
-    await prisma.page.deleteMany({});
+    await prisma.module.deleteMany({});
     await prisma.regulationUnit.deleteMany({});
     await prisma.regulationGroup.deleteMany({});
     await prisma.portfolio.deleteMany({});
@@ -20,57 +20,57 @@ async function clearData(): Promise<void> {
 async function main(): Promise<void> {
     await clearData();
 
-    // --- Seed for Pages (for sidebar) ---
-    const pagesData = [
+    // --- Seed for Modules (for sidebar) ---
+    const modulesData = [
         {
             name: "Billing & Payments",
-            subpages: ["Invoices", "Payment Methods", "Payment History"],
+            submodules: ["Invoices", "Payment Methods", "Payment History"],
         },
         {
             name: "Contracts",
-            subpages: ["Overview", "Manage Contracts"],
+            submodules: ["Overview", "Manage Contracts"],
         },
         {
             name: "Marketing",
-            subpages: ["Campaigns", "Leads", "Performance"],
+            submodules: ["Campaigns", "Leads", "Performance"],
         },
         {
             name: "Monitoring",
-            subpages: ["System Status", "Logs", "Alerts"],
+            submodules: ["System Status", "Logs", "Alerts"],
         },
         {
             name: "Portfolios",
-            subpages: [],
+            submodules: [],
         },
         {
             name: "Regulation Groups",
-            subpages: [],
+            submodules: [],
         },
         {
             name: "Regulation Units",
-            subpages: [],
+            submodules: [],
         },
         {
             name: "Security",
-            subpages: ["User Management", "Role Management", "Audit Logs"],
+            submodules: ["User Management", "Role Management", "Audit Logs"],
         },
         {
             name: "Settings",
-            subpages: ["General", "Preferences", "Integrations"],
+            submodules: ["General", "Preferences", "Integrations"],
         },
         {
             name: "System Settings",
-            subpages: [],
+            submodules: [],
         },
     ];
 
-    for (const pageData of pagesData) {
-        const mainPage = await prisma.page.create({ data: { name: pageData.name } });
-        for (const subpageName of pageData.subpages) {
-            await prisma.page.create({ data: { name: subpageName, parentId: mainPage.id } });
+    for (const moduleData of modulesData) {
+        const mainModule = await prisma.module.create({ data: { name: moduleData.name } });
+        for (const submoduleName of moduleData.submodules) {
+            await prisma.module.create({ data: { name: submoduleName, parentId: mainModule.id } });
         }
     }
-    const allPages = await prisma.page.findMany();
+    const allModules = await prisma.module.findMany();
 
     // --- Seed Global Roles & Global Permissions ---
     const rolesData = [
@@ -96,12 +96,12 @@ async function main(): Promise<void> {
     for (const roleData of rolesData) {
         const role = await prisma.role.create({ data: { name: roleData.name } });
         createdRoles.push(role);
-        // Create global permissions for each page for this role.
-        for (const page of allPages) {
+        // Create global permissions for each module for this role.
+        for (const moduleObject of allModules) {
             await prisma.permission.create({
                 data: {
                     roleId: role.id,
-                    pageId: page.id,
+                    moduleId: moduleObject.id,
                     canView: roleData.permissions.canView,
                     canEdit: roleData.permissions.canEdit,
                     canDelete: roleData.permissions.canDelete,

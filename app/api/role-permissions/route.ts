@@ -10,10 +10,10 @@ type PermissionData = {
 
 export async function POST(request: Request) {
     const { roleId, permissions } = await request.json();
-    const updatePromises = Object.entries(permissions).map(async ([pageId, perms]) => {
+    const updatePromises = Object.entries(permissions).map(async ([moduleId, perms]) => {
         const typedPerms = perms as PermissionData;
         return prisma.permission.update({
-            where: { roleId_pageId: { roleId: Number(roleId), pageId: Number(pageId) } },
+            where: { roleId_moduleId: { roleId: Number(roleId), moduleId: Number(moduleId) } },
             data: {
                 canView: typedPerms.canView,
                 canEdit: typedPerms.canEdit,

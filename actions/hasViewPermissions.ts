@@ -1,8 +1,8 @@
 import prisma from "@/lib/prisma";
 
-export async function hasViewPermission(pageName: string): Promise<boolean> {
+export async function hasViewPermission(moduleName: string): Promise<boolean> {
     const user = await prisma.user.findFirst({
-        include: { roles: { include: { permissions: { include: { page: true } } } } },
+        include: { roles: { include: { permissions: { include: { module: true } } } } },
     });
 
     if (!user) return false;
@@ -11,7 +11,7 @@ export async function hasViewPermission(pageName: string): Promise<boolean> {
 
     user.roles.forEach((role) => {
         role.permissions.forEach((perm) => {
-            if (perm.page.name === pageName && perm.canView) {
+            if (perm.module.name === moduleName && perm.canView) {
                 canView = true;
             }
         });

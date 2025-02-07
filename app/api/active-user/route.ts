@@ -12,7 +12,7 @@ export async function GET() {
         where: { id: active.userId },
         include: {
             roles: {
-                include: { permissions: { include: { page: true } } },
+                include: { permissions: { include: { module: true } } },
             },
         },
     });
@@ -30,8 +30,8 @@ export async function GET() {
             name: role.name,
             permissions: role.permissions.map((perm) => ({
                 roleId: role.id,
-                pageId: perm.pageId,
-                pageName: perm.page.name,
+                pageId: perm.moduleId,
+                moduleName: perm.module.name,
                 permission: {
                     canView: perm.canView,
                     canEdit: perm.canEdit,

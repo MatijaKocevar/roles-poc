@@ -11,8 +11,8 @@ type Permission = {
 
 type RolePermission = {
     roleId: number;
-    pageId: number;
-    pageName: string;
+    moduleId: number;
+    moduleName: string;
     permission: Permission;
 };
 
@@ -29,13 +29,13 @@ export type ActiveUser = {
 };
 
 type AggregatedPermissions = {
-    [pageName: string]: Permission;
+    [moduleName: string]: Permission;
 };
 
 type ActiveUserContextType = {
     user: ActiveUser | null;
     permissions: AggregatedPermissions;
-    hasPermission: (pageName: string, permKey: keyof Permission) => boolean;
+    hasPermission: (moduleName: string, permKey: keyof Permission) => boolean;
     setUser: (user: ActiveUser | null) => void;
 };
 
@@ -67,19 +67,23 @@ export function ActiveUserProvider({ children }: { children: ReactNode }) {
             const agg: AggregatedPermissions = {};
             for (const role of user.roles) {
                 for (const perm of role.permissions) {
-                    const page = perm.pageName;
-                    if (!agg[page]) {
-                        agg[page] = {
+                    const moduleObject = perm.moduleName;
+                    if (!agg[moduleObject]) {
+                        agg[moduleObject] = {
                             canView: false,
                             canEdit: false,
                             canDelete: false,
                             canCreate: false,
                         };
                     }
-                    agg[page].canView = agg[page].canView || perm.permission.canView;
-                    agg[page].canEdit = agg[page].canEdit || perm.permission.canEdit;
-                    agg[page].canDelete = agg[page].canDelete || perm.permission.canDelete;
-                    agg[page].canCreate = agg[page].canCreate || perm.permission.canCreate;
+                    agg[moduleObject].canView =
+                        agg[moduleObject].canView || perm.permission.canView;
+                    agg[moduleObject].canEdit =
+                        agg[moduleObject].canEdit || perm.permission.canEdit;
+                    agg[moduleObject].canDelete =
+                        agg[moduleObject].canDelete || perm.permission.canDelete;
+                    agg[moduleObject].canCreate =
+                        agg[moduleObject].canCreate || perm.permission.canCreate;
                 }
             }
             setPermissions(agg);
@@ -88,8 +92,8 @@ export function ActiveUserProvider({ children }: { children: ReactNode }) {
         }
     }, [user]);
 
-    const hasPermission = (pageName: string, permKey: keyof Permission) => {
-        return permissions[pageName]?.[permKey] || false;
+    const hasPermission = (moduleName: string, permKey: keyof Permission) => {
+        return permissions[moduleName]?.[permKey] || false;
     };
 
     if (user === null) {
