@@ -3,11 +3,11 @@ import { redirect } from "next/navigation";
 import { hasViewPermission } from "../../../../actions/hasViewPermissions";
 
 export default async function TradingAutobidderPage() {
-    const canView = await hasViewPermission("Trading Autobidder");
+    const canView = await hasViewPermission("trading-autobidder");
 
     if (!canView) {
         redirect("/unauthorized");
     }
 
-    return <GenericPage pageName="Trading Autobidder" />;
+    return <GenericPage pageName="trading-autobidder" />;
 }

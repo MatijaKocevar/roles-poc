@@ -6,10 +6,12 @@ import Link from "next/link";
 export const dynamic = "force-dynamic";
 
 export default async function RegulationGroupsPage() {
-    const canView = await hasViewPermission("Regulation Groups");
+    const canView = await hasViewPermission("assets-regulation-groups");
+
     if (!canView) {
         redirect("/unauthorized");
     }
+
     const active = await prisma.activeUser.findUnique({ where: { id: 1 } });
     const activeUserId = active?.userId;
     if (!activeUserId) {

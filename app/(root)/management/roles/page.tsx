@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 const prisma = new PrismaClient();
 
 export default async function RolesListPage() {
-    const canView = await hasViewPermission("Management Roles");
+    const canView = await hasViewPermission("management-roles");
 
     if (!canView) {
         redirect("/unauthorized");

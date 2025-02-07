@@ -3,11 +3,11 @@ import { hasViewPermission } from "../../../actions/hasViewPermissions";
 import { redirect } from "next/navigation";
 
 export default async function ContractsPage() {
-    const canView = await hasViewPermission("Contracts");
+    const canView = await hasViewPermission("contracts");
 
     if (!canView) {
         redirect("/unauthorized");
     }
 
-    return <GenericPage pageName="Contracts" />;
+    return <GenericPage pageName="contracts" />;
 }

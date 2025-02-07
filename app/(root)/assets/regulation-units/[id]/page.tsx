@@ -12,7 +12,7 @@ export default async function RegulationUnitDetailsPage({
 }) {
     const params = await asyncParams;
 
-    const canView = await hasViewPermission("Regulation Units");
+    const canView = await hasViewPermission("assets-regulation-units");
     if (!canView) {
         redirect("/unauthorized");
     }

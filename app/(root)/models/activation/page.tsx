@@ -3,11 +3,11 @@ import { hasViewPermission } from "../../../../actions/hasViewPermissions";
 import { redirect } from "next/navigation";
 
 export default async function ModelsActivationPage() {
-    const canView = await hasViewPermission("Models Activation");
+    const canView = await hasViewPermission("models-activation");
 
     if (!canView) {
         redirect("/unauthorized");
     }
 
-    return <GenericPage pageName="Models Activation" />;
+    return <GenericPage pageName="models-activation" />;
 }

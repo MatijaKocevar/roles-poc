@@ -3,11 +3,11 @@ import { hasViewPermission } from "../../../../actions/hasViewPermissions";
 import { redirect } from "next/navigation";
 
 export default async function TradingHistoryPage() {
-    const canView = await hasViewPermission("Trading History");
+    const canView = await hasViewPermission("trading-history");
 
     if (!canView) {
         redirect("/unauthorized");
     }
 
-    return <GenericPage pageName="Trading History" />;
+    return <GenericPage pageName="trading-history" />;
 }

@@ -2,45 +2,45 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 export async function GET() {
-    const active = await prisma.activeUser.findUnique({ where: { id: 1 } });
-
-    if (!active) {
-        return NextResponse.json({ active: null });
+    // Get the active user record (assumes id=1 for active user)
+    const activeUserRecord = await prisma.activeUser.findUnique({ where: { id: 1 } });
+    if (!activeUserRecord) {
+        return NextResponse.json({ activeUser: null });
     }
 
+    // Fetch user with roles and role permissions, including module relation
     const user = await prisma.user.findUnique({
-        where: { id: active.userId },
+        where: { id: activeUserRecord.userId },
         include: {
             roles: {
-                include: { permissions: { include: { module: true } } },
+                include: {
+                    permissions: {
+                        include: { module: true },
+                    },
+                },
             },
         },
     });
 
     if (!user) {
-        return NextResponse.error();
+        return NextResponse.json({ activeUser: null });
     }
 
-    let transformedUser = null;
-    transformedUser = {
-        id: user.id,
-        email: user.email,
-        roles: user.roles.map((role) => ({
-            id: role.id,
-            name: role.name,
-            permissions: role.permissions.map((perm) => ({
-                roleId: role.id,
-                pageId: perm.moduleId,
-                moduleName: perm.module.name,
-                permission: {
-                    canView: perm.canView,
-                    canEdit: perm.canEdit,
-                    canDelete: perm.canDelete,
-                    canCreate: perm.canCreate,
-                },
-            })),
+    const transformedRoles = user.roles.map((role) => ({
+        ...role,
+        permissions: role.permissions.map((perm) => ({
+            roleId: perm.roleId,
+            moduleSlug: perm.module.slug,
+            permission: {
+                canView: perm.canView,
+                canEdit: perm.canEdit,
+                canDelete: perm.canDelete,
+                canCreate: perm.canCreate,
+            },
         })),
-    };
+    }));
 
-    return NextResponse.json({ activeUser: transformedUser });
+    const activeUser = { ...user, roles: transformedRoles };
+
+    return NextResponse.json({ activeUser });
 }

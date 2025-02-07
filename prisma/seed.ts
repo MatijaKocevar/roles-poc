@@ -17,6 +17,11 @@ async function clearData(): Promise<void> {
     await prisma.portfolio.deleteMany({});
 }
 
+// Add helper to generate slug from name.
+function generateSlug(name: string): string {
+    return name.toLowerCase().replace(/\s+/g, "-");
+}
+
 async function main(): Promise<void> {
     await clearData();
 
@@ -24,15 +29,15 @@ async function main(): Promise<void> {
     const modulesData = [
         {
             name: "Trading",
-            submodules: ["Trading Overview", "Trading History", "Trading Autobidder"],
+            submodules: ["Overview", "History", "Autobidder"],
         },
         {
             name: "Models",
-            submodules: ["Models Optimization", "Models Activation"],
+            submodules: ["Optimization", "Activation"],
         },
         {
             name: "Archive",
-            submodules: ["Archive Realtime"],
+            submodules: ["Realtime"],
         },
         {
             name: "Assets",
@@ -40,26 +45,34 @@ async function main(): Promise<void> {
         },
         {
             name: "Management",
-            submodules: ["Management Users", "Management Roles", "Management Companies"],
+            submodules: ["Users", "Roles", "Companies"],
         },
         {
             name: "Contracts",
-            submodules: ["Contracts Overview", "Contracts History"],
+            submodules: ["Overview", "History"],
         },
         {
             name: "Reports",
-            submodules: ["Reports Settlements", "Reports Logs"],
+            submodules: ["Settlements", "Logs"],
         },
         {
             name: "System",
-            submodules: ["System Overview", "System Settings"],
+            submodules: ["Overview", "Settings"],
         },
     ];
 
     for (const moduleData of modulesData) {
-        const mainModule = await prisma.module.create({ data: { name: moduleData.name } });
+        const mainModule = await prisma.module.create({
+            data: { name: moduleData.name, slug: generateSlug(moduleData.name) },
+        });
         for (const submoduleName of moduleData.submodules) {
-            await prisma.module.create({ data: { name: submoduleName, parentId: mainModule.id } });
+            await prisma.module.create({
+                data: {
+                    name: submoduleName,
+                    slug: mainModule.slug + "-" + generateSlug(submoduleName),
+                    parentId: mainModule.id,
+                },
+            });
         }
     }
     const allModules = await prisma.module.findMany();

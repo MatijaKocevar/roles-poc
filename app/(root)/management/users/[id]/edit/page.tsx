@@ -13,7 +13,8 @@ export default async function EditUserPage({
     const params = await asyncParams;
 
     const { id } = await Promise.resolve(params);
-    const canView = await hasViewPermission("Management Users");
+
+    const canView = await hasViewPermission("management-users");
     if (!canView) {
         redirect("/unauthorized");
     }

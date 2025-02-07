@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { GalleryVerticalEnd } from "lucide-react";
 import Link from "next/link";
 import {
@@ -16,97 +16,46 @@ import {
 } from "@/components/ui/sidebar";
 import { useActiveUser } from "@/app/active-user-context";
 
-const data = {
-    navMain: [
-        {
-            title: "Archive",
-            url: "/archive",
-            submodules: [{ title: "Archive Realtime", url: "/archive/realtime" }],
-        },
-        {
-            title: "Assets",
-            url: "/assets",
-            submodules: [
-                { title: "Portfolios", url: "/assets/portfolios" },
-                { title: "Regulation Groups", url: "/assets/regulation-groups" },
-                { title: "Regulation Units", url: "/assets/regulation-units" },
-            ],
-        },
-        {
-            title: "Contracts",
-            url: "/contracts",
-            submodules: [
-                { title: "Contracts Overview", url: "/contracts/overview" },
-                { title: "Contracts History", url: "/contracts/history" },
-            ],
-        },
-        {
-            title: "Management",
-            url: "/management",
-            submodules: [
-                { title: "Management Users", url: "/management/users" },
-                { title: "Management Roles", url: "/management/roles" },
-                { title: "Management Companies", url: "/management/companies" },
-            ],
-        },
-        {
-            title: "Models",
-            url: "/models",
-            submodules: [
-                { title: "Models Optimization", url: "/models/optimization" },
-                { title: "Models Activation", url: "/models/activation" },
-            ],
-        },
-        {
-            title: "Reports",
-            url: "/reports",
-            submodules: [
-                { title: "Reports Settlements", url: "/reports/settlements" },
-                { title: "Reports Logs", url: "/reports/logs" },
-            ],
-        },
-        {
-            title: "System",
-            url: "/system",
-            submodules: [
-                { title: "System Overview", url: "/system/overview" },
-                { title: "System Settings", url: "/system/settings" },
-            ],
-        },
-        {
-            title: "Trading",
-            url: "/trading",
-            submodules: [
-                { title: "Trading Overview", url: "/trading/overview" },
-                { title: "Trading History", url: "/trading/history" },
-                { title: "Trading Autobidder", url: "/trading/autobidder" },
-            ],
-        },
-    ],
-};
-
+// Remove static data and fetch modules dynamically.
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const { hasPermission } = useActiveUser();
+    const [modules, setModules] = useState<
+        Array<{
+            title: string;
+            url: string;
+            slug: string;
+            submodules: { title: string; url: string; slug: string }[];
+        }>
+    >([]);
     const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});
 
-    const toggleExpanded = (title: string) =>
-        setExpanded((prev) => ({ ...prev, [title]: !prev[title] }));
+    useEffect(() => {
+        async function fetchModules() {
+            const res = await fetch("/api/modules");
+            const data = await res.json();
 
-    const filteredNavMain = data.navMain
+            console.log("HWAATTT: ", data);
+
+            setModules(data);
+        }
+
+        fetchModules();
+    }, []);
+
+    const toggleExpanded = (slug: string) =>
+        setExpanded((prev) => ({ ...prev, [slug]: !prev[slug] }));
+
+    const filteredModules = modules
         .map((item) => {
             if (item.submodules) {
-                const allowedSubmodules = item.submodules.filter((sub) =>
-                    hasPermission(sub.title, "canView")
+                const allowedSubs = item.submodules.filter((sub) =>
+                    hasPermission(sub.slug, "canView")
                 );
-
-                return { ...item, submodules: allowedSubmodules };
+                return { ...item, submodules: allowedSubs };
             }
-
             return item;
         })
-        .filter((item) => {
-            return hasPermission(item.title, "canView");
-        });
+        .filter((item) => hasPermission(item.slug, "canView"));
 
     return (
         <Sidebar {...props}>
@@ -130,9 +79,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarContent>
                 <SidebarGroup>
                     <SidebarMenu>
-                        {filteredNavMain.map((item) =>
-                            item.submodules ? (
-                                <div key={item.title}>
+                        {filteredModules.map((item) =>
+                            item.submodules.length > 0 ? (
+                                <div key={item.slug}>
                                     <div className="flex items-center justify-between">
                                         <SidebarMenuItem>
                                             <SidebarMenuButton asChild>
@@ -140,16 +89,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                             </SidebarMenuButton>
                                         </SidebarMenuItem>
                                         <button
-                                            onClick={() => toggleExpanded(item.title)}
+                                            onClick={() => toggleExpanded(item.slug)}
                                             className="p-1 text-gray-500 hover:text-gray-700"
                                         >
-                                            {expanded[item.title] ? "–" : "+"}
+                                            {expanded[item.slug] ? "–" : "+"}
                                         </button>
                                     </div>
-                                    {expanded[item.title] && item.submodules.length > 0 && (
+                                    {expanded[item.slug] && (
                                         <div className="ml-4">
                                             {item.submodules.map((sub) => (
-                                                <SidebarMenuItem key={sub.title}>
+                                                <SidebarMenuItem key={sub.slug}>
                                                     <SidebarMenuButton asChild>
                                                         <Link href={sub.url}>{sub.title}</Link>
                                                     </SidebarMenuButton>
@@ -159,7 +108,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                     )}
                                 </div>
                             ) : (
-                                <SidebarMenuItem key={item.title}>
+                                <SidebarMenuItem key={item.slug}>
                                     <SidebarMenuButton asChild>
                                         <Link href={item.url}>{item.title}</Link>
                                     </SidebarMenuButton>

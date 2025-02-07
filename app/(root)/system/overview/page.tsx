@@ -3,11 +3,11 @@ import { hasViewPermission } from "../../../../actions/hasViewPermissions";
 import { redirect } from "next/navigation";
 
 export default async function SystemOverviewPage() {
-    const canView = await hasViewPermission("System Overview");
+    const canView = await hasViewPermission("system-overview");
 
     if (!canView) {
         redirect("/unauthorized");
     }
 
-    return <GenericPage pageName="System Overview" />;
+    return <GenericPage pageName="system-overview" />;
 }

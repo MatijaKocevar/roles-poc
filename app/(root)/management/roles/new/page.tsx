@@ -9,7 +9,7 @@ export default function NewRolePage() {
     const router = useRouter();
     const { hasPermission } = useActiveUser();
 
-    if (!hasPermission("Management Roles", "canView")) {
+    if (!hasPermission("management-roles", "canView")) {
         router.push("/unauthorized");
     }
 

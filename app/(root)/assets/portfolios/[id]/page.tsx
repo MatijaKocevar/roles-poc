@@ -12,7 +12,7 @@ export default async function PortfolioDetailsPage({
 }) {
     const params = await asyncParams;
 
-    const canView = await hasViewPermission("Portfolios");
+    const canView = await hasViewPermission("assets-portfolios");
     if (!canView) {
         redirect("/unauthorized");
     }

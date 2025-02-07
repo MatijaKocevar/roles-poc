@@ -12,7 +12,7 @@ export default async function EditRolePage({
 }) {
     const params = await asyncParams;
 
-    const canView = await hasViewPermission("Management Roles");
+    const canView = await hasViewPermission("management-roles");
 
     if (!canView) {
         redirect("/unauthorized");
