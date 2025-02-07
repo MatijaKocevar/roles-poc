@@ -23,44 +23,36 @@ async function main(): Promise<void> {
     // --- Seed for Modules (for sidebar) ---
     const modulesData = [
         {
-            name: "Billing & Payments",
-            submodules: ["Invoices", "Payment Methods", "Payment History"],
+            name: "Trading",
+            submodules: ["Trading Overview", "Trading History", "Trading Autobidder"],
+        },
+        {
+            name: "Models",
+            submodules: ["Models Optimization", "Models Activation"],
+        },
+        {
+            name: "Archive",
+            submodules: ["Archive Realtime"],
+        },
+        {
+            name: "Assets",
+            submodules: ["Portfolios", "Regulation Groups", "Regulation Units"],
+        },
+        {
+            name: "Management",
+            submodules: ["Management Users", "Management Roles", "Management Companies"],
         },
         {
             name: "Contracts",
-            submodules: ["Overview", "Manage Contracts"],
+            submodules: ["Contracts Overview", "Contracts History"],
         },
         {
-            name: "Marketing",
-            submodules: ["Campaigns", "Leads", "Performance"],
+            name: "Reports",
+            submodules: ["Reports Settlements", "Reports Logs"],
         },
         {
-            name: "Monitoring",
-            submodules: ["System Status", "Logs", "Alerts"],
-        },
-        {
-            name: "Portfolios",
-            submodules: [],
-        },
-        {
-            name: "Regulation Groups",
-            submodules: [],
-        },
-        {
-            name: "Regulation Units",
-            submodules: [],
-        },
-        {
-            name: "Security",
-            submodules: ["User Management", "Role Management", "Audit Logs"],
-        },
-        {
-            name: "Settings",
-            submodules: ["General", "Preferences", "Integrations"],
-        },
-        {
-            name: "System Settings",
-            submodules: [],
+            name: "System",
+            submodules: ["System Overview", "System Settings"],
         },
     ];
 

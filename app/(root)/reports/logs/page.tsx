@@ -2,12 +2,12 @@ import GenericPage from "@/components/GenericPage";
 import { hasViewPermission } from "../../../../actions/hasViewPermissions";
 import { redirect } from "next/navigation";
 
-export default async function ContractsOverviewPage() {
-    const canView = await hasViewPermission("Contracts Overview");
+export default async function ReportsLogsPage() {
+    const canView = await hasViewPermission("Reports Logs");
 
     if (!canView) {
         redirect("/unauthorized");
     }
 
-    return <GenericPage pageName="Contracts Overview" />;
+    return <GenericPage pageName="Reports Logs" />;
 }
