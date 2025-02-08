@@ -1,19 +1,21 @@
-import { NextResponse } from "next/server";
+"use server";
+
 import prisma from "@/lib/prisma";
+import { FlatAsset } from "./active-user";
 
-export async function GET() {
-    const active = await prisma.activeUser.findUnique({ where: { id: 1 } });
-    if (!active) return NextResponse.json(null);
-
+export async function getUserById(userId: number) {
     const user = await prisma.user.findUnique({
-        where: { id: active.userId },
+        where: { id: userId },
         select: {
             id: true,
             email: true,
+            firstName: true,
+            lastName: true,
             userAssets: true,
         },
     });
-    if (!user) return NextResponse.json(null);
+
+    if (!user) return null;
 
     const portfolioIds: number[] = [];
     const regGroupIds: number[] = [];
@@ -88,7 +90,13 @@ export async function GET() {
         };
     });
 
-    return NextResponse.json({
-        activeUser: { id: user.id, email: user.email, assets: flatAssets },
-    });
+    return {
+        user: {
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            assets: flatAssets as FlatAsset[],
+        },
+    };
 }

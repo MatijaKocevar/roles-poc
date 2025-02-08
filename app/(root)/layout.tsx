@@ -61,7 +61,7 @@ export default function Page({ children }: Readonly<{ children: ReactNode }>) {
                     </Breadcrumb>
                     <div className="flex-1 text-right">{user?.email}</div>
                 </header>
-                <div className="flex flex-1 flex-col gap-4 p-4">
+                <div className="flex flex-1 flex-col gap-4 p-4 max-w-[100vw]">
                     <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min">
                         {children}
                     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { FlatAsset, getActiveUser } from "../actions/active-user";
 
 type Module = {
     id: number;
@@ -30,35 +31,31 @@ export type ActiveAsset = {
     roles: Role[];
 };
 
-export type ActiveUser = {
+export interface User {
     id: number;
     email: string;
-    assets: ActiveAsset[];
-};
+    firstName: string;
+    lastName: string;
+    assets: FlatAsset[];
+}
 
 type ActiveUserContextType = {
-    user: ActiveUser | null;
-    setUser: (user: ActiveUser | null) => void;
+    user: User | null;
+    setUser: (user: User | null) => void;
     hasPermission: (moduleSlug: string, permKey: keyof Permission) => boolean;
 };
 
 const ActiveUserContext = createContext<ActiveUserContextType | undefined>(undefined);
 
 export function ActiveUserProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<ActiveUser | null>(null);
+    const [user, setUser] = useState<User | null>(null);
 
     useEffect(() => {
         async function fetchActiveUser() {
-            try {
-                const res = await fetch("/api/active-user");
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.activeUser) {
-                        setUser(data.activeUser);
-                    }
-                }
-            } catch (err) {
-                console.error("Error fetching active user", err);
+            const res = await getActiveUser();
+
+            if (res?.activeUser) {
+                setUser(res.activeUser);
             }
         }
         fetchActiveUser();

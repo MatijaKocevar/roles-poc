@@ -14,6 +14,7 @@ import {
     SidebarMenuItem,
     SidebarRail,
 } from "@/components/ui/sidebar";
+import { getModules } from "../actions/modules";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const [modules, setModules] = useState<
@@ -28,8 +29,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
     useEffect(() => {
         async function fetchModules() {
-            const res = await fetch("/api/modules");
-            const data = await res.json();
+            const data = await getModules();
+
             setModules(data);
         }
 
