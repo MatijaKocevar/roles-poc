@@ -15,8 +15,10 @@ model Role {
 }
 
 model User {
-  id       Int    @id @default(autoincrement())
+  id        Int    @id @default(autoincrement())
   email    String @unique
+  firstName String
+  lastName String
   userAssets UserAsset[] // Added inverse relation for UserAsset
 }
 

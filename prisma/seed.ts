@@ -102,11 +102,33 @@ async function main(): Promise<void> {
 
     // --- Create Users ---
     // Capture created users for later asset assignment.
-    const createdUsers = [];
-    const user0 = await prisma.user.create({ data: { email: "user0@example.com" } });
-    createdUsers.push(user0);
-    for (let i = 1; i <= 9; i++) {
-        const user = await prisma.user.create({ data: { email: `user${i}@example.com` } });
+    const createdUsers: any[] = [];
+    const users = [
+        { email: "super.admin@example.com", firstName: "Super", lastName: "Admin" },
+        { email: "john.doe@example.com", firstName: "John", lastName: "Doe" },
+        { email: "jane.smith@example.com", firstName: "Jane", lastName: "Smith" },
+        { email: "robert.jones@example.com", firstName: "Robert", lastName: "Jones" },
+        { email: "alice.brown@example.com", firstName: "Alice", lastName: "Brown" },
+        { email: "michael.davis@example.com", firstName: "Michael", lastName: "Davis" },
+        { email: "linda.wilson@example.com", firstName: "Linda", lastName: "Wilson" },
+        { email: "david.garcia@example.com", firstName: "David", lastName: "Garcia" },
+        { email: "maria.rodriguez@example.com", firstName: "Maria", lastName: "Rodriguez" },
+        {
+            email: "christopher.williams@example.com",
+            firstName: "Christopher",
+            lastName: "Williams",
+        },
+        { email: "jennifer.martinez@example.com", firstName: "Jennifer", lastName: "Martinez" },
+        { email: "james.anderson@example.com", firstName: "James", lastName: "Anderson" },
+        { email: "laura.thomas@example.com", firstName: "Laura", lastName: "Thomas" },
+        { email: "kevin.jackson@example.com", firstName: "Kevin", lastName: "Jackson" },
+        { email: "jessica.white@example.com", firstName: "Jessica", lastName: "White" },
+    ];
+
+    for (const userData of users) {
+        const user = await prisma.user.create({
+            data: userData,
+        });
         createdUsers.push(user);
     }
 
@@ -164,24 +186,41 @@ async function main(): Promise<void> {
     }
 
     // --- Assign Assets to Users via UserAsset join ---
-    for (const asset of createdAssets) {
-        const randomUser = createdUsers[Math.floor(Math.random() * createdUsers.length)];
-        await prisma.userAsset.create({
-            data: {
-                userId: randomUser.id,
-                assetId: asset.id,
-                assetType: asset.assetType,
-            },
-        });
+    for (const user of createdUsers) {
+        // Keep track of assigned assets for the current user
+        const assignedAssets = new Set<string>();
+
+        // Assign a random number of assets to each user
+        const numberOfAssetsToAssign = Math.floor(Math.random() * createdAssets.length) + 1; // Assign at least one asset
+
+        for (let i = 0; i < numberOfAssetsToAssign; i++) {
+            const randomAssetIndex = Math.floor(Math.random() * createdAssets.length);
+            const asset = createdAssets[randomAssetIndex];
+            const assetIdentifier = `${asset.id}-${asset.assetType}`;
+
+            // Check if the asset has already been assigned to the user
+            if (!assignedAssets.has(assetIdentifier)) {
+                await prisma.userAsset.create({
+                    data: {
+                        userId: user.id,
+                        assetId: asset.id,
+                        assetType: asset.assetType,
+                    },
+                });
+
+                // Add the asset to the set of assigned assets
+                assignedAssets.add(assetIdentifier);
+            }
+        }
     }
 
     // --- Set Active User to the First User ---
-    const firstUser = await prisma.user.findFirst();
-    if (firstUser) {
+    const superAdminUser = createdUsers[0];
+    if (superAdminUser) {
         await prisma.activeUser.upsert({
             where: { id: 1 },
-            update: { userId: firstUser.id },
-            create: { id: 1, userId: firstUser.id },
+            update: { userId: superAdminUser.id },
+            create: { id: 1, userId: superAdminUser.id },
         });
     }
 }
