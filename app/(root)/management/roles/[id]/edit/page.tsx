@@ -1,8 +1,4 @@
-import { hasViewPermission } from "../../../../../../actions/hasViewPermissions";
-import { redirect } from "next/navigation";
-import GenericPage from "../../../../../../components/GenericPage";
-
-export const dynamic = "force-dynamic";
+import EditRoleForm from "../../../../../../components/EditRoleForm";
 
 export default async function EditRolePage({
     params: asyncParams,
@@ -10,12 +6,12 @@ export default async function EditRolePage({
     params: Promise<{ id: string }>;
 }) {
     const params = await asyncParams;
+    const { id } = await Promise.resolve(params);
 
-    const canView = await hasViewPermission("management-roles");
-
-    if (!canView) {
-        redirect("/unauthorized");
-    }
-
-    return <GenericPage pageName="management-roles" />;
+    return (
+        <div>
+            <h1>Edit Role</h1>
+            <EditRoleForm roleId={id} />
+        </div>
+    );
 }
