@@ -11,17 +11,13 @@ model Role {
   id          Int        @id @default(autoincrement())
   name        String
   permissions Permission[]
-  users       User[]
-  // (Global roles remain for the app as a whole.)
+  roleAssets  RoleAsset[]
 }
 
 model User {
-  id                          Int                          @id @default(autoincrement())
-  email                       String                       @unique
-  roles                       Role[]
-  userGroupPermissions        UserGroupPermission[]
-  userPortfolioPermissions    UserPortfolioPermission[]
-  userUnitPermissions         UserUnitPermission[]
+  id       Int    @id @default(autoincrement())
+  email    String @unique
+  userAssets UserAsset[] // Added inverse relation for UserAsset
 }
 
 model Module {
@@ -51,7 +47,6 @@ model Portfolio {
   id                         Int                         @id @default(autoincrement())
   name                       String
   groups                     RegulationGroup[]
-  userPortfolioPermissions   UserPortfolioPermission[]
 }
 
 model RegulationGroup {
@@ -60,7 +55,6 @@ model RegulationGroup {
   portfolio                 Portfolio                @relation(fields: [portfolioId], references: [id])
   portfolioId               Int
   units                     RegulationUnit[]
-  userGroupPermissions      UserGroupPermission[]
 }
 
 model RegulationUnit {
@@ -68,50 +62,28 @@ model RegulationUnit {
   name                      String
   group                     RegulationGroup          @relation(fields: [groupId], references: [id])
   groupId                   Int
-  userUnitPermissions       UserUnitPermission[]
-}
-
-model UserGroupPermission {
-  id        Int              @id @default(autoincrement())
-  userId    Int
-  groupId   Int
-  canView   Boolean          @default(false)
-  canEdit   Boolean          @default(false)
-  canDelete Boolean          @default(false)
-  canCreate Boolean          @default(false)
-  user      User             @relation(fields: [userId], references: [id])
-  group     RegulationGroup  @relation(fields: [groupId], references: [id])
-  @@unique([userId, groupId])
-}
-
-model UserPortfolioPermission {
-  id           Int         @id @default(autoincrement())
-  userId       Int
-  portfolioId  Int
-  canView      Boolean     @default(false)
-  canEdit      Boolean     @default(false)
-  canDelete    Boolean     @default(false)
-  canCreate    Boolean     @default(false)
-  user         User        @relation(fields: [userId], references: [id])
-  portfolio    Portfolio   @relation(fields: [portfolioId], references: [id])
-  @@unique([userId, portfolioId])
-}
-
-model UserUnitPermission {
-  id        Int                @id @default(autoincrement())
-  userId    Int
-  unitId    Int
-  canView   Boolean            @default(false)
-  canEdit   Boolean            @default(false)
-  canDelete Boolean            @default(false)
-  canCreate Boolean            @default(false)
-  user      User               @relation(fields: [userId], references: [id])
-  unit      RegulationUnit     @relation(fields: [unitId], references: [id])
-  @@unique([userId, unitId])
 }
 
 model ActiveUser {
   id       Int      @id @default(1)
   userId   Int
   updatedAt DateTime @updatedAt
+}
+
+model RoleAsset {
+  id        Int      @id @default(autoincrement())
+  roleId    Int
+  assetId   Int
+  assetType String   // e.g., "Portfolio", "RegulationGroup", "RegulationUnit"
+  role      Role     @relation(fields: [roleId], references: [id])
+  @@unique([roleId, assetId, assetType])
+}
+
+model UserAsset {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  assetId   Int
+  assetType String   // e.g., "Portfolio", "RegulationGroup", "RegulationUnit"
+  user      User     @relation(fields: [userId], references: [id])
+  @@unique([userId, assetId, assetType])
 }

@@ -2,39 +2,42 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
+type Module = {
+    id: number;
+    name: string;
+    slug: string;
+};
+
 type Permission = {
+    id: number;
     canView: boolean;
     canEdit: boolean;
     canDelete: boolean;
     canCreate: boolean;
-};
-
-type RolePermission = {
-    roleId: number;
-    moduleSlug: string;
-    permission: Permission;
+    module: Module;
 };
 
 type Role = {
     id: number;
     name: string;
-    permissions: RolePermission[];
+    permissions: Permission[];
+};
+
+export type ActiveAsset = {
+    id: number;
+    name: string;
+    assetType: string;
+    roles: Role[];
 };
 
 export type ActiveUser = {
     id: number;
     email: string;
-    roles: Role[];
-};
-
-type AggregatedPermissions = {
-    [moduleSlug: string]: Permission;
+    assets: ActiveAsset[];
 };
 
 type ActiveUserContextType = {
     user: ActiveUser | null;
-    permissions: AggregatedPermissions;
-    hasPermission: (moduleSlug: string, permKey: keyof Permission) => boolean;
     setUser: (user: ActiveUser | null) => void;
 };
 
@@ -42,7 +45,6 @@ const ActiveUserContext = createContext<ActiveUserContextType | undefined>(undef
 
 export function ActiveUserProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<ActiveUser | null>(null);
-    const [permissions, setPermissions] = useState<AggregatedPermissions>({});
 
     useEffect(() => {
         async function fetchActiveUser() {
@@ -61,47 +63,12 @@ export function ActiveUserProvider({ children }: { children: ReactNode }) {
         fetchActiveUser();
     }, []);
 
-    useEffect(() => {
-        if (user) {
-            const agg: AggregatedPermissions = {};
-            for (const role of user.roles) {
-                for (const perm of role.permissions) {
-                    const moduleKey = perm.moduleSlug;
-                    if (!agg[moduleKey]) {
-                        agg[moduleKey] = {
-                            canView: false,
-                            canEdit: false,
-                            canDelete: false,
-                            canCreate: false,
-                        };
-                    }
-                    agg[moduleKey].canView = agg[moduleKey].canView || perm.permission.canView;
-                    agg[moduleKey].canEdit = agg[moduleKey].canEdit || perm.permission.canEdit;
-                    agg[moduleKey].canDelete =
-                        agg[moduleKey].canDelete || perm.permission.canDelete;
-                    agg[moduleKey].canCreate =
-                        agg[moduleKey].canCreate || perm.permission.canCreate;
-                }
-            }
-
-            console.log(user);
-
-            setPermissions(agg);
-        } else {
-            setPermissions({});
-        }
-    }, [user]);
-
-    const hasPermission = (moduleSlug: string, permKey: keyof Permission) => {
-        return permissions[moduleSlug]?.[permKey] || false;
-    };
-
     if (user === null) {
         return <div>Loading...</div>;
     }
 
     return (
-        <ActiveUserContext.Provider value={{ user, permissions, hasPermission, setUser }}>
+        <ActiveUserContext.Provider value={{ user, setUser }}>
             {children}
         </ActiveUserContext.Provider>
     );

@@ -14,11 +14,8 @@ import {
     SidebarMenuItem,
     SidebarRail,
 } from "@/components/ui/sidebar";
-import { useActiveUser } from "@/app/active-user-context";
 
-// Remove static data and fetch modules dynamically.
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-    const { hasPermission } = useActiveUser();
     const [modules, setModules] = useState<
         Array<{
             title: string;
@@ -33,9 +30,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         async function fetchModules() {
             const res = await fetch("/api/modules");
             const data = await res.json();
-
-            console.log("HWAATTT: ", data);
-
             setModules(data);
         }
 
@@ -45,17 +39,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const toggleExpanded = (slug: string) =>
         setExpanded((prev) => ({ ...prev, [slug]: !prev[slug] }));
 
-    const filteredModules = modules
-        .map((item) => {
-            if (item.submodules) {
-                const allowedSubs = item.submodules.filter((sub) =>
-                    hasPermission(sub.slug, "canView")
-                );
-                return { ...item, submodules: allowedSubs };
-            }
-            return item;
-        })
-        .filter((item) => hasPermission(item.slug, "canView"));
+    const displayedModules = modules;
 
     return (
         <Sidebar {...props}>
@@ -79,7 +63,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarContent>
                 <SidebarGroup>
                     <SidebarMenu>
-                        {filteredModules.map((item) =>
+                        {displayedModules.map((item) =>
                             item.submodules.length > 0 ? (
                                 <div key={item.slug}>
                                     <div className="flex items-center justify-between">
