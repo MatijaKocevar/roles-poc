@@ -39,6 +39,7 @@ export type ActiveUser = {
 type ActiveUserContextType = {
     user: ActiveUser | null;
     setUser: (user: ActiveUser | null) => void;
+    hasPermission: (moduleSlug: string, permKey: keyof Permission) => boolean;
 };
 
 const ActiveUserContext = createContext<ActiveUserContextType | undefined>(undefined);
@@ -63,12 +64,16 @@ export function ActiveUserProvider({ children }: { children: ReactNode }) {
         fetchActiveUser();
     }, []);
 
+    const hasPermission = (moduleSlug: string, permKey: keyof Permission) => {
+        return true;
+    };
+
     if (user === null) {
         return <div>Loading...</div>;
     }
 
     return (
-        <ActiveUserContext.Provider value={{ user, setUser }}>
+        <ActiveUserContext.Provider value={{ user, setUser, hasPermission }}>
             {children}
         </ActiveUserContext.Provider>
     );

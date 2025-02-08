@@ -17,7 +17,7 @@ import { useActiveUser } from "../active-user-context";
 
 export default function Page({ children }: Readonly<{ children: ReactNode }>) {
     const pathname = usePathname();
-    const pathSegments = pathname.split("/").filter((segment) => segment !== "");
+    const pathSegments = pathname?.split("/").filter((segment) => segment !== "");
     const { user } = useActiveUser();
 
     return (
@@ -29,10 +29,10 @@ export default function Page({ children }: Readonly<{ children: ReactNode }>) {
                     <Separator orientation="vertical" className="mr-2 h-4" />
                     <Breadcrumb>
                         <BreadcrumbList>
-                            {pathSegments.length > 0 ? (
-                                pathSegments.map((segment, index) => {
-                                    const isLast = index === pathSegments.length - 1;
-                                    const href = "/" + pathSegments.slice(0, index + 1).join("/");
+                            {pathSegments?.length ?? 0 > 0 ? (
+                                pathSegments?.map((segment, index) => {
+                                    const isLast = index === pathSegments?.length - 1;
+                                    const href = "/" + pathSegments?.slice(0, index + 1).join("/");
                                     return (
                                         <span key={href}>
                                             {isLast ? (

@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-export async function GET(_request: Request, { params }: { params: { id: string } }) {
-    const roleId = Number(params.id);
+export async function GET(request: Request) {
+    const { searchParams } = new URL(request.url);
+    const roleId = Number(searchParams.get("id"));
     const role = await prisma.role.findUnique({
         where: { id: roleId },
         include: {
@@ -13,5 +14,6 @@ export async function GET(_request: Request, { params }: { params: { id: string 
             },
         },
     });
+
     return NextResponse.json(role);
 }
