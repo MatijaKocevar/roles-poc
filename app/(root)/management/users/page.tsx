@@ -42,7 +42,12 @@ export default async function UsersPage() {
                             </TableCell>
                             <TableCell>{user.email}</TableCell>
                             <TableCell>
-                                <Link href={`/management/users/${user.id}/edit`}>View</Link>
+                                <Link
+                                    href={`/management/users/${user.id}/edit`}
+                                    className="text-blue-500"
+                                >
+                                    View
+                                </Link>
                             </TableCell>
                         </TableRow>
                     ))}

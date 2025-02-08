@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
-import { User } from "../../active-user-context";
+import { User } from "../app/active-user-context";
 import {
     addAssetToUser,
     removeAssetFromUser,
@@ -15,6 +15,7 @@ import {
     getAllRoles,
     getAssetTypeById,
 } from "@/actions/user-actions";
+import { Button } from "./ui/button";
 
 interface UserInfoDisplayProps {
     user: User | undefined;
@@ -140,21 +141,66 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                         </option>
                     ))}
                 </select>
-                <button onClick={handleAddAsset}>Add Asset</button>
+                <Button onClick={handleAddAsset}>Add Asset</Button>
             </div>
+
             <div className="space-y-4">
                 {user?.assets.map((asset) => (
                     <div key={asset.id} className="border border-gray-300 rounded-md p-4 shadow-sm">
-                        <div className="font-semibold text-lg mb-2">
-                            {asset.assetType}: {asset.name}
-                        </div>
-                        <div>
-                            <span className="font-semibold">Roles:</span>
+                        <div className="font-semibold text-lg mb-2 flex flex-col justify-between">
+                            <div className="flex flex-row gap-2 items-center justify-between">
+                                <div className="flex flex-row gap-2 items-center">
+                                    <div>
+                                        {asset.assetType}: {asset.name}
+                                    </div>
+                                </div>
+                                <Button
+                                    variant={"destructive"}
+                                    onClick={() =>
+                                        handleRemoveAsset(asset.id || 0, asset.assetType)
+                                    }
+                                >
+                                    Remove Asset
+                                </Button>
+                            </div>
+                            <div className="flex flex-row items-center gap-10">
+                                <span className="font-semibold">Roles:</span>
+                                <div className="flex gap-2">
+                                    {/* Add/Remove Role Form */}
+                                    <select
+                                        className="font-normal"
+                                        value={selectedRoles[asset.id || 0] || ""}
+                                        onChange={(e) =>
+                                            handleRoleChange(
+                                                asset.id || 0,
+                                                parseInt(e.target.value)
+                                            )
+                                        }
+                                    >
+                                        <option value="">Select Role</option>
+                                        {roles.map((role) => (
+                                            <option key={role.id} value={role.id}>
+                                                {role.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <Button
+                                        onClick={() =>
+                                            handleAddRole(asset.id || 0, asset.assetType)
+                                        }
+                                    >
+                                        Add Role
+                                    </Button>
+                                </div>
+                            </div>
                             <ul className="mt-2 space-y-1">
                                 {asset.roles.map((role) => {
                                     const tooltipId = `role-tooltip-${role.id}`;
                                     return (
-                                        <li key={role.id} className="mb-2 flex gap-2">
+                                        <li
+                                            key={role.id}
+                                            className="mb-2 flex justify-between items-center"
+                                        >
                                             <span
                                                 data-tooltip-id={tooltipId}
                                                 className="font-medium text-indigo-600 cursor-pointer"
@@ -182,7 +228,8 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                                                     </div>
                                                 ))}
                                             </Tooltip>
-                                            <button
+                                            <Button
+                                                variant={"destructive"}
                                                 onClick={() =>
                                                     handleRemoveRole(
                                                         asset.id || 0,
@@ -192,33 +239,11 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                                                 }
                                             >
                                                 Remove Role
-                                            </button>
+                                            </Button>
                                         </li>
                                     );
                                 })}
                             </ul>
-                        </div>
-                        <button onClick={() => handleRemoveAsset(asset.id || 0, asset.assetType)}>
-                            Remove Asset
-                        </button>
-                        <div className="flex gap-2">
-                            {/* Add/Remove Role Form */}
-                            <select
-                                value={selectedRoles[asset.id || 0] || ""}
-                                onChange={(e) =>
-                                    handleRoleChange(asset.id || 0, parseInt(e.target.value))
-                                }
-                            >
-                                <option value="">Select Role</option>
-                                {roles.map((role) => (
-                                    <option key={role.id} value={role.id}>
-                                        {role.name}
-                                    </option>
-                                ))}
-                            </select>
-                            <button onClick={() => handleAddRole(asset.id || 0, asset.assetType)}>
-                                Add Role
-                            </button>
                         </div>
                     </div>
                 ))}

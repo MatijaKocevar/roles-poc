@@ -1,7 +1,7 @@
 import { hasViewPermission } from "../../../../../../actions/hasViewPermissions";
 import { redirect } from "next/navigation";
 import { getUserById } from "../../../../../../actions/user";
-import UserInfoDisplay from "../../../../(home)/UserInfoDisplay";
+import UserInfoDisplay from "../../../../../../components/UserInfoDisplay";
 
 export const dynamic = "force-dynamic";
 
