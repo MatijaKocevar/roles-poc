@@ -6,13 +6,13 @@ export interface FlatAsset {
     assetType: string;
     id: number | null;
     name: string | null;
-    roles: {
+    accessProfiles: {
         id: number;
         name: string;
         permissions: {
             id: number;
             moduleId: number;
-            roleId: number;
+            accessProfileId: number;
             permission: "VIEW" | "MANAGE";
             module: {
                 id: number;
@@ -64,7 +64,7 @@ export async function getUserById(userId: number) {
         }),
     ]);
 
-    const userAssetRoles = await prisma.userAssetRole.findMany({
+    const userAssetRoles = await prisma.userAccessProfile.findMany({
         where: {
             userId,
             OR: [
@@ -76,7 +76,7 @@ export async function getUserById(userId: number) {
         select: {
             assetId: true,
             assetType: true,
-            role: {
+            accessProfile: {
                 select: {
                     id: true,
                     name: true,
@@ -108,7 +108,7 @@ export async function getUserById(userId: number) {
     for (const r of userAssetRoles) {
         const key = `${r.assetType}:${r.assetId}`;
         if (!userRolesMap.has(key)) userRolesMap.set(key, []);
-        userRolesMap.get(key)?.push(r.role);
+        userRolesMap.get(key)?.push(r.accessProfile);
     }
 
     const flatAssets = user.userAssets.map((ua) => {
@@ -117,12 +117,12 @@ export async function getUserById(userId: number) {
         if (ua.assetType === "RegulationGroup") assetDetails = groupMap[ua.assetId];
         if (ua.assetType === "RegulationUnit") assetDetails = unitMap[ua.assetId];
 
-        const roles = userRolesMap.get(`${ua.assetType}:${ua.assetId}`) || [];
+        const accessProfiles = userRolesMap.get(`${ua.assetType}:${ua.assetId}`) || [];
         return {
             assetType: ua.assetType,
             id: assetDetails?.id,
             name: assetDetails?.name,
-            roles,
+            accessProfiles,
         };
     });
 
@@ -180,7 +180,7 @@ export async function getActiveUser() {
         }),
     ]);
 
-    const userAssetRoles = await prisma.userAssetRole.findMany({
+    const userAssetRoles = await prisma.userAccessProfile.findMany({
         where: {
             userId: user.id,
             OR: [
@@ -192,7 +192,7 @@ export async function getActiveUser() {
         select: {
             assetId: true,
             assetType: true,
-            role: {
+            accessProfile: {
                 select: {
                     id: true,
                     name: true,
@@ -224,7 +224,7 @@ export async function getActiveUser() {
     for (const r of userAssetRoles) {
         const key = `${r.assetType}:${r.assetId}`;
         if (!userRolesMap.has(key)) userRolesMap.set(key, []);
-        userRolesMap.get(key)?.push(r.role);
+        userRolesMap.get(key)?.push(r.accessProfile);
     }
 
     const flatAssets = user.userAssets.map((ua) => {
@@ -233,12 +233,12 @@ export async function getActiveUser() {
         if (ua.assetType === "RegulationGroup") assetDetails = groupMap[ua.assetId];
         if (ua.assetType === "RegulationUnit") assetDetails = unitMap[ua.assetId];
 
-        const roles = userRolesMap.get(`${ua.assetType}:${ua.assetId}`) || [];
+        const accessProfiles = userRolesMap.get(`${ua.assetType}:${ua.assetId}`) || [];
         return {
             assetType: ua.assetType,
             id: assetDetails?.id,
             name: assetDetails?.name,
-            roles,
+            accessProfiles,
         };
     });
 
@@ -252,4 +252,94 @@ export async function getActiveUser() {
             assets: flatAssets as FlatAsset[],
         },
     };
+}
+
+export async function getUsersList(activeUserId: number) {
+    const activeUser = await prisma.user.findUnique({
+        where: { id: activeUserId },
+        select: { id: true, role: true, companyId: true },
+    });
+    if (!activeUser) return [];
+
+    let whereClause = {};
+    if (activeUser.role === "SUPER_ADMIN") {
+        whereClause = {};
+    } else if (activeUser.role === "COMPANY_MANAGER") {
+        whereClause = {
+            companyId: activeUser.companyId,
+            role: { in: ["PORTFOLIO_MANAGER", "REG_GROUP_MANAGER", "UNIT_MANAGER"] },
+        };
+    } else if (activeUser.role === "PORTFOLIO_MANAGER") {
+        const userPortfolios = await prisma.userAsset.findMany({
+            where: {
+                userId: activeUser.id,
+                assetType: "Portfolio",
+            },
+            select: { assetId: true },
+        });
+        const portfolioIds = userPortfolios.map((p) => p.assetId);
+        const groups = await prisma.regulationGroup.findMany({
+            where: { portfolioId: { in: portfolioIds } },
+            select: {
+                id: true,
+                units: { select: { id: true } },
+            },
+        });
+        const groupIds = groups.map((g) => g.id);
+        const unitIds = groups.flatMap((g) => g.units.map((u) => u.id));
+
+        whereClause = {
+            companyId: activeUser.companyId,
+            role: { in: ["REG_GROUP_MANAGER", "UNIT_MANAGER"] },
+            userAssets: {
+                some: {
+                    OR: [
+                        { assetType: "RegulationGroup", assetId: { in: groupIds } },
+                        { assetType: "RegulationUnit", assetId: { in: unitIds } },
+                    ],
+                },
+            },
+        };
+    } else if (activeUser.role === "REG_GROUP_MANAGER") {
+        const userGroups = await prisma.userAsset.findMany({
+            where: {
+                userId: activeUser.id,
+                assetType: "RegulationGroup",
+            },
+            select: { assetId: true },
+        });
+        const groupIds = userGroups.map((g) => g.assetId);
+        const units = await prisma.regulationUnit.findMany({
+            where: { groupId: { in: groupIds } },
+            select: { id: true },
+        });
+        const unitIds = units.map((u) => u.id);
+
+        whereClause = {
+            companyId: activeUser.companyId,
+            role: "UNIT_MANAGER",
+            userAssets: {
+                some: {
+                    assetType: "RegulationUnit",
+                    assetId: { in: unitIds },
+                },
+            },
+        };
+    } else if (activeUser.role === "UNIT_MANAGER") {
+        whereClause = { id: activeUser.id };
+    }
+
+    const users = await prisma.user.findMany({
+        where: activeUser.role === "SUPER_ADMIN" ? {} : whereClause,
+        select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+            company: { select: { id: true, name: true } },
+        },
+    });
+
+    return activeUser.role === "UNIT_MANAGER" ? users : users.filter((u) => u.id !== activeUser.id);
 }

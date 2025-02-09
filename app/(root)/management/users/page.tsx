@@ -11,17 +11,24 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "../../../../components/ui/button";
+import { getUsersList } from "../../../../actions/user";
 
 export const dynamic = "force-dynamic";
 
 export default async function UsersPage() {
     const canView = await hasViewPermission("management-users");
+    if (!canView) redirect("/unauthorized");
 
-    if (!canView) {
-        redirect("/unauthorized");
-    }
+    const activeUserRecord = await prisma.activeUser.findUnique({ where: { id: 1 } });
+    if (!activeUserRecord?.userId) return <div>No active user.</div>;
 
-    const users = await prisma.user.findMany();
+    const users = await getUsersList(activeUserRecord.userId);
+
+    const activeUser = await prisma.user.findUnique({
+        where: { id: activeUserRecord.userId },
+        select: { id: true, role: true, companyId: true },
+    });
+    if (!activeUser) return <div>Active user not found.</div>;
 
     return (
         <div className="mx-auto p-4">
@@ -31,6 +38,8 @@ export default async function UsersPage() {
                         <TableHead>ID</TableHead>
                         <TableHead>Name</TableHead>
                         <TableHead>Email</TableHead>
+                        <TableHead>Company</TableHead>
+                        <TableHead>Role</TableHead>
                         <TableHead>Actions</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -42,10 +51,14 @@ export default async function UsersPage() {
                                 {user.firstName} {user.lastName}
                             </TableCell>
                             <TableCell>{user.email}</TableCell>
+                            <TableCell>{user.company?.name || "N/A"}</TableCell>
+                            <TableCell>{formatUserRole(user.role)}</TableCell>
                             <TableCell>
-                                <Link href={`/management/users/${user.id}/edit`}>
-                                    <Button>View</Button>
-                                </Link>
+                                {activeUser.role !== "UNIT_MANAGER" && (
+                                    <Link href={`/management/users/${user.id}/edit`}>
+                                        <Button>View</Button>
+                                    </Link>
+                                )}
                             </TableCell>
                         </TableRow>
                     ))}
@@ -53,4 +66,21 @@ export default async function UsersPage() {
             </Table>
         </div>
     );
+}
+
+function formatUserRole(role: string): string {
+    switch (role) {
+        case "SUPER_ADMIN":
+            return "Super Admin";
+        case "COMPANY_MANAGER":
+            return "Company Manager";
+        case "PORTFOLIO_MANAGER":
+            return "Portfolio Manager";
+        case "REG_GROUP_MANAGER":
+            return "Regulation Group Manager";
+        case "UNIT_MANAGER":
+            return "Unit Manager";
+        default:
+            return "N/A";
+    }
 }

@@ -2,53 +2,53 @@
 
 import prisma from "@/lib/prisma";
 
-export async function getRole(roleId: string) {
-    return await prisma.role.findUnique({
-        where: { id: parseInt(roleId) },
+export async function getAccessProfile(accessProfileId: string) {
+    return await prisma.accessProfile.findUnique({
+        where: { id: parseInt(accessProfileId) },
         select: { name: true },
     });
 }
 
 // Change permissions type to use a single permission value per module.
-export async function createRole(
+export async function createAccessProfile(
     name: string,
     permissions: { [moduleId: number]: "VIEW" | "MANAGE" }
 ) {
     try {
-        const role = await prisma.role.create({
+        const accessProfile = await prisma.accessProfile.create({
             data: { name },
         });
         for (const moduleId in permissions) {
             const perm = permissions[Number(moduleId)];
             await prisma.permission.create({
                 data: {
-                    roleId: role.id,
+                    accessProfileId: accessProfile.id,
                     moduleId: parseInt(moduleId),
                     permission: perm,
                 },
             });
         }
-        return role;
+        return accessProfile;
     } catch (error) {
-        console.error("Error creating role:", error);
-        throw new Error("Failed to create role.");
+        console.error("Error creating accessProfile:", error);
+        throw new Error("Failed to create accessProfile.");
     }
 }
 
-export async function updateRole(
+export async function updateAccessProfile(
     id: string,
     name: string,
     permissions: { [moduleId: number]: "VIEW" | "MANAGE" }
 ) {
     try {
-        const updatedRole = await prisma.role.update({
+        const updatedAccessProfile = await prisma.accessProfile.update({
             where: { id: parseInt(id) },
             data: { name },
         });
 
-        // Delete existing permissions for the role.
+        // Delete existing permissions for the accessProfile.
         await prisma.permission.deleteMany({
-            where: { roleId: parseInt(id) },
+            where: { accessProfileId: parseInt(id) },
         });
 
         // Create new permission records using the new format.
@@ -56,23 +56,23 @@ export async function updateRole(
             const perm = permissions[Number(moduleId)];
             await prisma.permission.create({
                 data: {
-                    roleId: parseInt(id),
+                    accessProfileId: parseInt(id),
                     moduleId: parseInt(moduleId),
                     permission: perm,
                 },
             });
         }
 
-        return updatedRole;
+        return updatedAccessProfile;
     } catch (error) {
-        console.error("Error updating role:", error);
+        console.error("Error updating accessProfile:", error);
         return null;
     }
 }
 
-export async function getPermissionsForRole(roleId: string) {
+export async function getPermissionsForAccessProfile(accessProfileId: string) {
     const permissions = await prisma.permission.findMany({
-        where: { roleId: parseInt(roleId) },
+        where: { accessProfileId: parseInt(accessProfileId) },
     });
     const mapping: { [moduleId: number]: "VIEW" | "MANAGE" } = {};
     permissions.forEach((perm) => {
@@ -81,13 +81,13 @@ export async function getPermissionsForRole(roleId: string) {
     return mapping;
 }
 
-// Updated deleteRole to first remove associated permissions before deleting the role
-export async function deleteRole({ roleId }: { roleId: number }) {
+// Updated deleteAccessProfile to remove associated permissions and use the new model name.
+export async function deleteAccessProfile({ accessProfileId }: { accessProfileId: number }) {
     await prisma.permission.deleteMany({
-        where: { roleId },
+        where: { accessProfileId: accessProfileId },
     });
 
-    await prisma.role.delete({
-        where: { id: roleId },
+    await prisma.accessProfile.delete({
+        where: { id: accessProfileId },
     });
 }

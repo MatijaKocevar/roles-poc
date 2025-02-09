@@ -18,7 +18,8 @@ type Permission = {
     module: Module;
 };
 
-type Role = {
+// Renamed Role to AccessProfile
+type AccessProfile = {
     id: number;
     name: string;
     permissions: Permission[];
@@ -28,7 +29,8 @@ export type ActiveAsset = {
     id: number;
     name: string;
     assetType: string;
-    roles: Role[];
+    // Updated key to reflect the renaming
+    accessProfiles: AccessProfile[];
 };
 
 export interface User {

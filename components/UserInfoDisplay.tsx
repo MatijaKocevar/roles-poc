@@ -35,12 +35,12 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
     const [newAsset, setNewAsset] = useState({
         assetId: 0,
         assetType: "",
-        roleId: 0,
+        accessProfileId: 0,
     });
     const [portfolios, setPortfolios] = useState<AssetOption[]>([]);
     const [regulationGroups, setRegulationGroups] = useState<AssetOption[]>([]);
     const [regulationUnits, setRegulationUnits] = useState<AssetOption[]>([]);
-    const [roles, setRoles] = useState<RoleOption[]>([]);
+    const [accessProfiles, setRoles] = useState<RoleOption[]>([]);
     const [selectedRoles, setSelectedRoles] = useState<{ [assetKey: string]: number }>({});
 
     function assetKeyString(assetId: number, assetType: string) {
@@ -55,18 +55,23 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
             setRegulationGroups(regulationGroupsData);
             const regulationUnitsData = await getAllRegulationUnits();
             setRegulationUnits(regulationUnitsData);
-            const rolesData = await getAllRoles();
-            setRoles(rolesData);
+            const accessProfilesData = await getAllRoles();
+            setRoles(accessProfilesData);
         };
 
         fetchData();
     }, []);
 
     const handleAddAsset = async () => {
-        if (user && newAsset.assetId && newAsset.assetType && newAsset.roleId) {
+        if (user && newAsset.assetId && newAsset.assetType && newAsset.accessProfileId) {
             await addAssetToUser(user.id, newAsset.assetId, newAsset.assetType);
-            await addRoleToAsset(user.id, newAsset.roleId, newAsset.assetId, newAsset.assetType);
-            setNewAsset({ assetId: 0, assetType: "", roleId: 0 });
+            await addRoleToAsset(
+                user.id,
+                newAsset.accessProfileId,
+                newAsset.assetId,
+                newAsset.assetType
+            );
+            setNewAsset({ assetId: 0, assetType: "", accessProfileId: 0 });
         }
     };
 
@@ -86,9 +91,13 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
         }
     };
 
-    const handleRemoveRole = async (assetId: number, assetType: string, roleId: number) => {
+    const handleRemoveRole = async (
+        assetId: number,
+        assetType: string,
+        accessProfileId: number
+    ) => {
         if (user) {
-            await removeRoleFromAsset(user.id, roleId, assetId, assetType);
+            await removeRoleFromAsset(user.id, accessProfileId, assetId, assetType);
         }
     };
 
@@ -103,10 +112,10 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
         }
     };
 
-    function handleRoleChange(assetId: number, assetType: string, roleId: number) {
+    function handleRoleChange(assetId: number, assetType: string, accessProfileId: number) {
         setSelectedRoles((prev) => ({
             ...prev,
-            [assetKeyString(assetId, assetType)]: roleId,
+            [assetKeyString(assetId, assetType)]: accessProfileId,
         }));
     }
 
@@ -148,14 +157,16 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                     ))}
                 </select>
                 <select
-                    value={newAsset.roleId === 0 ? "" : newAsset.roleId}
-                    onChange={(e) => setNewAsset({ ...newAsset, roleId: parseInt(e.target.value) })}
+                    value={newAsset.accessProfileId === 0 ? "" : newAsset.accessProfileId}
+                    onChange={(e) =>
+                        setNewAsset({ ...newAsset, accessProfileId: parseInt(e.target.value) })
+                    }
                 >
                     <option value="">Select Role</option>
-                    {roles.map((role) => (
-                        // Key set here using role.id
-                        <option key={role.id} value={role.id}>
-                            {role.name}
+                    {accessProfiles.map((accessProfile) => (
+                        // Key set here using accessProfile.id
+                        <option key={accessProfile.id} value={accessProfile.id}>
+                            {accessProfile.name}
                         </option>
                     ))}
                 </select>
@@ -207,10 +218,13 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                                             }
                                         >
                                             <option value="">Select Role</option>
-                                            {roles.map((role) => (
-                                                // Key set here using role.id
-                                                <option key={role.id} value={role.id}>
-                                                    {role.name}
+                                            {accessProfiles.map((accessProfile) => (
+                                                // Key set here using accessProfile.id
+                                                <option
+                                                    key={accessProfile.id}
+                                                    value={accessProfile.id}
+                                                >
+                                                    {accessProfile.name}
                                                 </option>
                                             ))}
                                         </select>
@@ -224,12 +238,12 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                                     </div>
                                 </div>
                                 <ul className="mt-2 space-y-1">
-                                    {asset.roles.map((role, roleIdx) => {
-                                        // Create a composite key for the role
-                                        const compositeKey = `${assetKey}-role-${
-                                            role.id ?? "unknown"
-                                        }-${roleIdx}`;
-                                        const tooltipId = `role-tooltip-${compositeKey}`;
+                                    {asset.accessProfiles.map((accessProfile, accessProfileIdx) => {
+                                        // Create a composite key for the accessProfile
+                                        const compositeKey = `${assetKey}-accessProfile-${
+                                            accessProfile.id ?? "unknown"
+                                        }-${accessProfileIdx}`;
+                                        const tooltipId = `accessProfile-tooltip-${compositeKey}`;
                                         return (
                                             <li
                                                 key={compositeKey}
@@ -240,7 +254,7 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                                                         data-tooltip-id={tooltipId}
                                                         className="font-medium text-indigo-600 cursor-pointer"
                                                     >
-                                                        {role.name}
+                                                        {accessProfile.name}
                                                     </span>
                                                 </div>
                                                 <Tooltip
@@ -252,7 +266,7 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                                                     }}
                                                     place="right"
                                                 >
-                                                    {role.permissions?.map((perm) => (
+                                                    {accessProfile.permissions?.map((perm) => (
                                                         // Key set here using compositeKey and perm.id
                                                         <div
                                                             className="z-50"
@@ -268,7 +282,7 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                                                         handleRemoveRole(
                                                             asset.id || 0,
                                                             asset.assetType,
-                                                            role.id
+                                                            accessProfile.id
                                                         )
                                                     }
                                                 >

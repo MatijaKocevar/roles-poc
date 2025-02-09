@@ -12,14 +12,18 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import React from "react";
-import { getPermissionsForRole, getRole, updateRole } from "../actions/roles";
+import {
+    getPermissionsForAccessProfile,
+    getAccessProfile,
+    updateAccessProfile,
+} from "../actions/accessProfile";
 import { Button } from "./ui/button";
 
-interface EditRoleFormProps {
-    roleId: string;
+interface EditAccessProfileFormProps {
+    accessProfileId: string;
 }
 
-export default function EditRoleForm({ roleId }: EditRoleFormProps) {
+export default function EditAccessProfileForm({ accessProfileId }: EditAccessProfileFormProps) {
     const [name, setName] = useState("");
     const [availableModules, setAvailableModules] = useState<
         Array<{ id: number; title: string; submodules: Array<{ id: number; title: string }> }>
@@ -31,16 +35,16 @@ export default function EditRoleForm({ roleId }: EditRoleFormProps) {
     const [permissions, setPermissions] = useState<{ [moduleId: number]: "VIEW" | "MANAGE" }>({});
     const router = useRouter();
 
-    const fetchRoleName = useCallback(async () => {
-        const data = await getRole(roleId);
+    const fetchAccessProfileName = useCallback(async () => {
+        const data = await getAccessProfile(accessProfileId);
         setName(data?.name || "");
-    }, [roleId]);
+    }, [accessProfileId]);
 
     useEffect(() => {
         async function fetchData() {
             const tree = await getModulesTree();
             setAvailableModules(tree);
-            const perms = await getPermissionsForRole(roleId);
+            const perms = await getPermissionsForAccessProfile(accessProfileId);
             setPermissions(perms);
             // Initialize selectedModules only with modules that have an entry in perms.
             const selected = tree
@@ -52,9 +56,9 @@ export default function EditRoleForm({ roleId }: EditRoleFormProps) {
                 }));
             setSelectedModules(selected);
         }
-        fetchRoleName();
+        fetchAccessProfileName();
         fetchData();
-    }, [roleId, fetchRoleName]);
+    }, [accessProfileId, fetchAccessProfileName]);
 
     const handlePermissionChange = (moduleId: number, newPermission: "VIEW" | "MANAGE") => {
         setPermissions((prev) => ({
@@ -95,9 +99,9 @@ export default function EditRoleForm({ roleId }: EditRoleFormProps) {
 
     async function handleSubmit(event: any) {
         event.preventDefault();
-        await updateRole(roleId, name, permissions);
+        await updateAccessProfile(accessProfileId, name, permissions);
 
-        router.push("/management/roles");
+        router.push("/management/accessProfiles");
     }
 
     const moduleOptions = availableModules.filter(
@@ -106,10 +110,10 @@ export default function EditRoleForm({ roleId }: EditRoleFormProps) {
 
     return (
         <form onSubmit={handleSubmit} className="max-w-md mx-auto mt-8">
-            {/* Role Name Section */}
+            {/* AccessProfile Name Section */}
             <div className="mb-4">
                 <label htmlFor="name" className="block text-gray-700 text-sm font-bold mb-2">
-                    Role Name:
+                    Access Profile Name:
                 </label>
                 <input
                     type="text"
@@ -272,7 +276,7 @@ export default function EditRoleForm({ roleId }: EditRoleFormProps) {
                     type="submit"
                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                 >
-                    Update Role
+                    Update AccessProfile
                 </Button>
             </div>
         </form>

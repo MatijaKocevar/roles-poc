@@ -7,12 +7,12 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model Role {
-  id          Int        @id @default(autoincrement())
-  name        String
-  permissions Permission[]
-  roleAssets  RoleAsset[]
-  userAssetRoles UserAssetRole[]
+model AccessProfile {
+  id               Int                   @id @default(autoincrement())
+  name             String
+  permissions      Permission[]
+  accessProfileAssets  AccessProfileAsset[]
+  userAccessProfiles   UserAccessProfile[]
 }
 
 model Company {
@@ -27,13 +27,11 @@ model User {
   email      String    @unique
   firstName  String
   lastName   String
-  companyId  Int
-  company    Company   @relation(fields: [companyId], references: [id])
+  role       UserRole  // added role field
+  companyId  Int?      // changed from Int to Int?
+  company    Company?  @relation(fields: [companyId], references: [id])
   userAssets UserAsset[]
-  userAssetRoles UserAssetRole[]
-  // Inverse relations for ownership using the predefined relation names
-  ownedPortfolios        Portfolio[]         @relation("PortfolioOwner")
-  ownedRegulationGroups  RegulationGroup[]   @relation("RegulationGroupOwner")
+  userAccessProfiles UserAccessProfile[]
   ownedRegulationUnits   RegulationUnit[]    @relation("RegulationUnitOwner")
 }
 
@@ -53,13 +51,13 @@ enum PermissionType {
 }
 
 model Permission {
-  id         Int            @id @default(autoincrement())
-  roleId     Int
-  moduleId   Int
-  permission PermissionType @default(VIEW)
-  role       Role           @relation(fields: [roleId], references: [id])
-  module     Module         @relation(fields: [moduleId], references: [id])
-  @@unique([roleId, moduleId])
+  id                Int             @id @default(autoincrement())
+  accessProfileId   Int
+  moduleId          Int
+  permission        PermissionType  @default(VIEW)
+  accessProfile     AccessProfile   @relation(fields: [accessProfileId], references: [id])
+  module            Module          @relation(fields: [moduleId], references: [id])
+  @@unique([accessProfileId, moduleId])
 }
 
 model Portfolio {
@@ -67,8 +65,6 @@ model Portfolio {
   name       String
   companyId  Int
   company    Company     @relation(fields: [companyId], references: [id])
-  ownerId    Int
-  owner      User        @relation(fields: [ownerId], references: [id], name: "PortfolioOwner")
   groups     RegulationGroup[]
 }
 
@@ -77,8 +73,6 @@ model RegulationGroup {
   name        String
   portfolio   Portfolio         @relation(fields: [portfolioId], references: [id])
   portfolioId Int
-  ownerId     Int
-  owner       User              @relation(fields: [ownerId], references: [id], name: "RegulationGroupOwner")
   units       RegulationUnit[]
 }
 
@@ -97,13 +91,13 @@ model ActiveUser {
   updatedAt DateTime @updatedAt
 }
 
-model RoleAsset {
-  id        Int      @id @default(autoincrement())
-  roleId    Int
-  assetId   Int
-  assetType String   // e.g., "Portfolio", "RegulationGroup", "RegulationUnit"
-  role      Role     @relation(fields: [roleId], references: [id])
-  @@unique([roleId, assetId, assetType])
+model AccessProfileAsset {
+  id               Int             @id @default(autoincrement())
+  accessProfileId   Int
+  assetId          Int
+  assetType        String          // e.g., "Portfolio", "RegulationGroup", "RegulationUnit"
+  accessProfile    AccessProfile   @relation(fields: [accessProfileId], references: [id])
+  @@unique([accessProfileId, assetId, assetType])
 }
 
 model UserAsset {
@@ -115,13 +109,21 @@ model UserAsset {
   @@unique([userId, assetId, assetType])
 }
 
-model UserAssetRole {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  roleId    Int
-  assetId   Int
-  assetType String
-  user      User     @relation(fields: [userId], references: [id])
-  role      Role     @relation(fields: [roleId], references: [id])
-  @@unique([userId, roleId, assetId, assetType])
+model UserAccessProfile {
+  id               Int          @id @default(autoincrement())
+  userId           Int
+  accessProfileId   Int
+  assetId          Int
+  assetType        String
+  user             User         @relation(fields: [userId], references: [id])
+  accessProfile    AccessProfile   @relation(fields: [accessProfileId], references: [id])
+  @@unique([userId, accessProfileId, assetId, assetType])
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  COMPANY_MANAGER
+  PORTFOLIO_MANAGER
+  REG_GROUP_MANAGER
+  UNIT_MANAGER
 }

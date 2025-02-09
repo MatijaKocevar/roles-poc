@@ -13,9 +13,9 @@ import {
 } from "@/components/ui/table";
 import React from "react";
 import { Button } from "./ui/button";
-import { createRole } from "../actions/roles";
+import { createAccessProfile } from "../actions/accessProfile";
 
-export default function CreateRoleForm() {
+export default function CreateAccessProfileForm() {
     const router = useRouter();
 
     const [availableModules, setAvailableModules] = useState<
@@ -79,9 +79,9 @@ export default function CreateRoleForm() {
 
     async function handleSubmit(event: any) {
         event.preventDefault();
-        await createRole(name, permissions);
+        await createAccessProfile(name, permissions);
 
-        router.push("/management/roles");
+        router.push("/management/accessProfiles");
     }
 
     // Options: available modules not added yet.
@@ -91,10 +91,10 @@ export default function CreateRoleForm() {
 
     return (
         <form onSubmit={handleSubmit} className="max-w-md mx-auto mt-8">
-            {/* Role Name Section */}
+            {/* AccessProfile Name Section */}
             <div className="mb-4">
                 <label htmlFor="name" className="block text-gray-700 text-sm font-bold mb-2">
-                    Role Name:
+                    AccessProfile Name:
                 </label>
                 <input
                     type="text"
@@ -253,7 +253,7 @@ export default function CreateRoleForm() {
                 </select>
             </div>
             <div className="flex items-center justify-between mt-4">
-                <Button type="submit">Create Role</Button>
+                <Button type="submit">Create AccessProfile</Button>
             </div>
         </form>
     );

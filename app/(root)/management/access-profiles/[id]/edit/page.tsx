@@ -1,4 +1,4 @@
-import EditRoleForm from "../../../../../../components/EditRoleForm";
+import EditAccessProfileForm from "../../../../../../components/EditAccessProfileForm";
 
 export default async function EditRolePage({
     params: asyncParams,
@@ -10,7 +10,7 @@ export default async function EditRolePage({
 
     return (
         <div>
-            <EditRoleForm roleId={id} />
+            <EditAccessProfileForm accessProfileId={id} />
         </div>
     );
 }

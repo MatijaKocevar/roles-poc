@@ -39,23 +39,23 @@ export async function removeAssetFromUser(userId: number, assetId: number, asset
 
 export async function addRoleToAsset(
     userId: number,
-    roleId: number,
+    accessProfileId: number,
     assetId: number,
     assetType: string
 ) {
     await prisma.userAssetRole.create({
-        data: { userId, roleId, assetId, assetType },
+        data: { userId, accessProfileId, assetId, assetType },
     });
 }
 
 export async function removeRoleFromAsset(
     userId: number,
-    roleId: number,
+    accessProfileId: number,
     assetId: number,
     assetType: string
 ) {
     await prisma.userAssetRole.deleteMany({
-        where: { userId, roleId, assetId, assetType },
+        where: { userId, accessProfileId, assetId, assetType },
     });
 }
 
@@ -97,10 +97,12 @@ export async function getAllRegulationUnits() {
 
 export async function getAllRoles() {
     try {
-        const roles = await prisma.role.findMany({ select: { id: true, name: true } });
-        return roles;
+        const accessProfiles = await prisma.accessProfile.findMany({
+            select: { id: true, name: true },
+        });
+        return accessProfiles;
     } catch (error) {
-        console.error("Error fetching roles:", error);
+        console.error("Error fetching accessProfiles:", error);
         return [];
     }
 }

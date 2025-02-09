@@ -11,18 +11,18 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "../../../../components/ui/button";
-import DeleteRoleButton from "./DeleteRoleButton";
+import DeleteRoleButton from "./DeleteAccessProfileButton";
 
 export const dynamic = "force-dynamic";
 
 export default async function RolesListPage() {
-    const canView = await hasViewPermission("management-roles");
+    const canView = await hasViewPermission("management-accessProfiles");
 
     if (!canView) {
         redirect("/unauthorized");
     }
 
-    const roles = await prisma.role.findMany();
+    const accessProfiles = await prisma.accessProfile.findMany();
 
     return (
         <div className="mx-auto p-4">
@@ -33,22 +33,22 @@ export default async function RolesListPage() {
                         <TableHead>Name</TableHead>
                         <TableHead className="w-60">
                             <span className="mr-8">Actions</span>
-                            <Link href="/management/roles/create">
+                            <Link href="/management/accessProfiles/create">
                                 <Button className="bg-blue-600">Create New Role</Button>
                             </Link>
                         </TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {roles.map((role) => (
-                        <TableRow key={role.id}>
-                            <TableCell>{role.id}</TableCell>
-                            <TableCell>{role.name}</TableCell>
+                    {accessProfiles.map((accessProfile) => (
+                        <TableRow key={accessProfile.id}>
+                            <TableCell>{accessProfile.id}</TableCell>
+                            <TableCell>{accessProfile.name}</TableCell>
                             <TableCell className="flex flex-row justify-around gap-2">
-                                <Link href={`/management/roles/${role.id}/edit`}>
+                                <Link href={`/management/access-profiles/${accessProfile.id}/edit`}>
                                     <Button>View</Button>
                                 </Link>
-                                <DeleteRoleButton roleId={role.id} />
+                                <DeleteRoleButton accessProfileId={accessProfile.id} />
                             </TableCell>
                         </TableRow>
                     ))}

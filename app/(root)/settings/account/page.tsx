@@ -2,12 +2,12 @@ import GenericPage from "@/components/GenericPage";
 import { hasViewPermission } from "../../../../actions/hasViewPermissions";
 import { redirect } from "next/navigation";
 
-export default async function SystemSettingsPage() {
-    const canView = await hasViewPermission("system-settings");
+export default async function SettingsAccountPage() {
+    const canView = await hasViewPermission("settings-account");
 
     if (!canView) {
         redirect("/unauthorized");
     }
 
-    return <GenericPage pageName="system-settings" />;
+    return <GenericPage pageName="settings-account" />;
 }

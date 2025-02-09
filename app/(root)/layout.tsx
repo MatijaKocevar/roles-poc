@@ -32,21 +32,35 @@ export default function Page({ children }: Readonly<{ children: ReactNode }>) {
                             {pathSegments?.length ?? 0 > 0 ? (
                                 pathSegments?.map((segment, index) => {
                                     const isLast = index === pathSegments?.length - 1;
+                                    const isId = /^\d+$/.test(segment);
                                     const href = "/" + pathSegments?.slice(0, index + 1).join("/");
                                     return (
-                                        <span key={href}>
-                                            {isLast ? (
-                                                <div className="capitalize">
-                                                    {decodeURIComponent(segment)}
-                                                </div>
-                                            ) : (
-                                                <div className="flex items-center gap-1">
+                                        <span key={href} className="flex items-center gap-1">
+                                            {isId ? (
+                                                <>
+                                                    <div className="capitalize">
+                                                        {decodeURIComponent(segment).replace(
+                                                            /-/g,
+                                                            " "
+                                                        )}
+                                                    </div>
+                                                    {!isLast && <BreadcrumbSeparator />}
+                                                </>
+                                            ) : !isLast ? (
+                                                <>
                                                     <Link href={href}>
                                                         <div className="capitalize">
-                                                            {decodeURIComponent(segment)}
+                                                            {decodeURIComponent(segment).replace(
+                                                                /-/g,
+                                                                " "
+                                                            )}
                                                         </div>
                                                     </Link>
                                                     <BreadcrumbSeparator />
+                                                </>
+                                            ) : (
+                                                <div className="capitalize">
+                                                    {decodeURIComponent(segment).replace(/-/g, " ")}
                                                 </div>
                                             )}
                                         </span>
