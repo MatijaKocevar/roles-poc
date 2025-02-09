@@ -32,6 +32,7 @@ export async function getUserById(userId: number) {
             email: true,
             firstName: true,
             lastName: true,
+            role: true,
             userAssets: true,
             company: true,
         },
@@ -132,7 +133,8 @@ export async function getUserById(userId: number) {
             email: user.email,
             firstName: user.firstName,
             lastName: user.lastName,
-            company: user.company, // include company data
+            role: user.role,
+            company: user.company,
             assets: flatAssets as FlatAsset[],
         },
     };
@@ -149,6 +151,7 @@ export async function getActiveUser() {
             email: true,
             firstName: true,
             lastName: true,
+            role: true,
             userAssets: true,
             company: true,
         },
@@ -248,7 +251,8 @@ export async function getActiveUser() {
             email: user.email,
             firstName: user.firstName,
             lastName: user.lastName,
-            company: user.company, // include company data
+            role: user.role,
+            company: user.company,
             assets: flatAssets as FlatAsset[],
         },
     };

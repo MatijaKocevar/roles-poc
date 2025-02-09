@@ -6,15 +6,15 @@ import { FlatAsset, getActiveUser } from "../actions/user";
 type Module = {
     id: number;
     name: string;
+    parentId: number | null;
     slug: string;
 };
 
 type Permission = {
     id: number;
-    canView: boolean;
-    canEdit: boolean;
-    canDelete: boolean;
-    canCreate: boolean;
+    moduleId: number;
+    accessProfileId: number;
+    permission: "VIEW" | "MANAGE";
     module: Module;
 };
 
@@ -38,11 +38,17 @@ export interface User {
     email: string;
     firstName: string;
     lastName: string;
+    role:
+        | "SUPER_ADMIN"
+        | "COMPANY_MANAGER"
+        | "PORTFOLIO_MANAGER"
+        | "REG_GROUP_MANAGER"
+        | "UNIT_MANAGER";
     assets: FlatAsset[];
     company: {
         id: number;
         name: string;
-    };
+    } | null;
 }
 
 type ActiveUserContextType = {
