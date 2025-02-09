@@ -91,11 +91,17 @@ model ActiveUser {
   updatedAt DateTime @updatedAt
 }
 
+enum AssetType {
+  PORTFOLIO
+  REGULATION_GROUP
+  REGULATION_UNIT
+}
+
 model AccessProfileAsset {
   id               Int             @id @default(autoincrement())
   accessProfileId   Int
   assetId          Int
-  assetType        String          // e.g., "Portfolio", "RegulationGroup", "RegulationUnit"
+  assetType        AssetType
   accessProfile    AccessProfile   @relation(fields: [accessProfileId], references: [id])
   @@unique([accessProfileId, assetId, assetType])
 }
@@ -104,7 +110,7 @@ model UserAsset {
   id        Int      @id @default(autoincrement())
   userId    Int
   assetId   Int
-  assetType String   // e.g., "Portfolio", "RegulationGroup", "RegulationUnit"
+  assetType AssetType
   user      User     @relation(fields: [userId], references: [id])
   @@unique([userId, assetId, assetType])
 }
@@ -114,7 +120,7 @@ model UserAccessProfile {
   userId           Int
   accessProfileId   Int
   assetId          Int
-  assetType        String
+  assetType        AssetType
   user             User         @relation(fields: [userId], references: [id])
   accessProfile    AccessProfile   @relation(fields: [accessProfileId], references: [id])
   @@unique([userId, accessProfileId, assetId, assetType])

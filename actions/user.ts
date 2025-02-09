@@ -1,9 +1,10 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { AssetType } from "@prisma/client";
 
 export interface FlatAsset {
-    assetType: string;
+    assetType: AssetType;
     id: number | null;
     name: string | null;
     accessProfiles: {
@@ -45,9 +46,9 @@ export async function getUserById(userId: number) {
     const regUnitIds: number[] = [];
 
     user.userAssets.forEach((ua) => {
-        if (ua.assetType === "Portfolio") portfolioIds.push(ua.assetId);
-        if (ua.assetType === "RegulationGroup") regGroupIds.push(ua.assetId);
-        if (ua.assetType === "RegulationUnit") regUnitIds.push(ua.assetId);
+        if (ua.assetType === AssetType.PORTFOLIO) portfolioIds.push(ua.assetId);
+        if (ua.assetType === AssetType.REGULATION_GROUP) regGroupIds.push(ua.assetId);
+        if (ua.assetType === AssetType.REGULATION_UNIT) regUnitIds.push(ua.assetId);
     });
 
     const [portfolios, groups, units] = await Promise.all([
@@ -69,9 +70,9 @@ export async function getUserById(userId: number) {
         where: {
             userId,
             OR: [
-                { assetType: "Portfolio", assetId: { in: portfolioIds } },
-                { assetType: "RegulationGroup", assetId: { in: regGroupIds } },
-                { assetType: "RegulationUnit", assetId: { in: regUnitIds } },
+                { assetType: AssetType.PORTFOLIO, assetId: { in: portfolioIds } },
+                { assetType: AssetType.REGULATION_GROUP, assetId: { in: regGroupIds } },
+                { assetType: AssetType.REGULATION_UNIT, assetId: { in: regUnitIds } },
             ],
         },
         select: {
@@ -114,9 +115,9 @@ export async function getUserById(userId: number) {
 
     const flatAssets = user.userAssets.map((ua) => {
         let assetDetails;
-        if (ua.assetType === "Portfolio") assetDetails = portfolioMap[ua.assetId];
-        if (ua.assetType === "RegulationGroup") assetDetails = groupMap[ua.assetId];
-        if (ua.assetType === "RegulationUnit") assetDetails = unitMap[ua.assetId];
+        if (ua.assetType === AssetType.PORTFOLIO) assetDetails = portfolioMap[ua.assetId];
+        if (ua.assetType === AssetType.REGULATION_GROUP) assetDetails = groupMap[ua.assetId];
+        if (ua.assetType === AssetType.REGULATION_UNIT) assetDetails = unitMap[ua.assetId];
 
         const accessProfiles = userRolesMap.get(`${ua.assetType}:${ua.assetId}`) || [];
         return {
@@ -163,9 +164,9 @@ export async function getActiveUser() {
     const regUnitIds: number[] = [];
 
     user.userAssets.forEach((ua) => {
-        if (ua.assetType === "Portfolio") portfolioIds.push(ua.assetId);
-        if (ua.assetType === "RegulationGroup") regGroupIds.push(ua.assetId);
-        if (ua.assetType === "RegulationUnit") regUnitIds.push(ua.assetId);
+        if (ua.assetType === AssetType.PORTFOLIO) portfolioIds.push(ua.assetId);
+        if (ua.assetType === AssetType.REGULATION_GROUP) regGroupIds.push(ua.assetId);
+        if (ua.assetType === AssetType.REGULATION_UNIT) regUnitIds.push(ua.assetId);
     });
 
     const [portfolios, groups, units] = await Promise.all([
@@ -187,9 +188,9 @@ export async function getActiveUser() {
         where: {
             userId: user.id,
             OR: [
-                { assetType: "Portfolio", assetId: { in: portfolioIds } },
-                { assetType: "RegulationGroup", assetId: { in: regGroupIds } },
-                { assetType: "RegulationUnit", assetId: { in: regUnitIds } },
+                { assetType: AssetType.PORTFOLIO, assetId: { in: portfolioIds } },
+                { assetType: AssetType.REGULATION_GROUP, assetId: { in: regGroupIds } },
+                { assetType: AssetType.REGULATION_UNIT, assetId: { in: regUnitIds } },
             ],
         },
         select: {
@@ -232,9 +233,9 @@ export async function getActiveUser() {
 
     const flatAssets = user.userAssets.map((ua) => {
         let assetDetails;
-        if (ua.assetType === "Portfolio") assetDetails = portfolioMap[ua.assetId];
-        if (ua.assetType === "RegulationGroup") assetDetails = groupMap[ua.assetId];
-        if (ua.assetType === "RegulationUnit") assetDetails = unitMap[ua.assetId];
+        if (ua.assetType === AssetType.PORTFOLIO) assetDetails = portfolioMap[ua.assetId];
+        if (ua.assetType === AssetType.REGULATION_GROUP) assetDetails = groupMap[ua.assetId];
+        if (ua.assetType === AssetType.REGULATION_UNIT) assetDetails = unitMap[ua.assetId];
 
         const accessProfiles = userRolesMap.get(`${ua.assetType}:${ua.assetId}`) || [];
         return {
@@ -277,7 +278,7 @@ export async function getUsersList(activeUserId: number) {
         const userPortfolios = await prisma.userAsset.findMany({
             where: {
                 userId: activeUser.id,
-                assetType: "Portfolio",
+                assetType: AssetType.PORTFOLIO,
             },
             select: { assetId: true },
         });
@@ -298,8 +299,8 @@ export async function getUsersList(activeUserId: number) {
             userAssets: {
                 some: {
                     OR: [
-                        { assetType: "RegulationGroup", assetId: { in: groupIds } },
-                        { assetType: "RegulationUnit", assetId: { in: unitIds } },
+                        { assetType: AssetType.REGULATION_GROUP, assetId: { in: groupIds } },
+                        { assetType: AssetType.REGULATION_UNIT, assetId: { in: unitIds } },
                     ],
                 },
             },
@@ -308,7 +309,7 @@ export async function getUsersList(activeUserId: number) {
         const userGroups = await prisma.userAsset.findMany({
             where: {
                 userId: activeUser.id,
-                assetType: "RegulationGroup",
+                assetType: AssetType.REGULATION_GROUP,
             },
             select: { assetId: true },
         });
@@ -324,7 +325,7 @@ export async function getUsersList(activeUserId: number) {
             role: "UNIT_MANAGER",
             userAssets: {
                 some: {
-                    assetType: "RegulationUnit",
+                    assetType: AssetType.REGULATION_UNIT,
                     assetId: { in: unitIds },
                 },
             },

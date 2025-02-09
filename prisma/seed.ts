@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, AssetType } from "@prisma/client";
 import { execSync } from "child_process";
 
 const prisma = new PrismaClient();
@@ -29,7 +29,11 @@ function generateSlug(name: string): string {
     return name.toLowerCase().replace(/\s+/g, "-");
 }
 
-async function safeCreateUserAsset(data: { userId: number; assetId: number; assetType: string }) {
+async function safeCreateUserAsset(data: {
+    userId: number;
+    assetId: number;
+    assetType: AssetType;
+}) {
     try {
         await prisma.userAsset.create({ data });
     } catch (e: any) {
@@ -232,20 +236,24 @@ async function main(): Promise<void> {
             // Assign assets to the respective users
             // Company manager: portfolio, group, unit
             await prisma.userAsset.create({
-                data: { userId: companyManager.id, assetId: portfolio.id, assetType: "Portfolio" },
+                data: {
+                    userId: companyManager.id,
+                    assetId: portfolio.id,
+                    assetType: AssetType.PORTFOLIO,
+                },
             });
             await prisma.userAsset.create({
                 data: {
                     userId: companyManager.id,
                     assetId: regGroup.id,
-                    assetType: "RegulationGroup",
+                    assetType: AssetType.REGULATION_GROUP,
                 },
             });
             await prisma.userAsset.create({
                 data: {
                     userId: companyManager.id,
                     assetId: regUnit.id,
-                    assetType: "RegulationUnit",
+                    assetType: AssetType.REGULATION_UNIT,
                 },
             });
 
@@ -254,21 +262,21 @@ async function main(): Promise<void> {
                 data: {
                     userId: users.portfolioManager.id,
                     assetId: portfolio.id,
-                    assetType: "Portfolio",
+                    assetType: AssetType.PORTFOLIO,
                 },
             });
             await prisma.userAsset.create({
                 data: {
                     userId: users.portfolioManager.id,
                     assetId: regGroup.id,
-                    assetType: "RegulationGroup",
+                    assetType: AssetType.REGULATION_GROUP,
                 },
             });
             await prisma.userAsset.create({
                 data: {
                     userId: users.portfolioManager.id,
                     assetId: regUnit.id,
-                    assetType: "RegulationUnit",
+                    assetType: AssetType.REGULATION_UNIT,
                 },
             });
 
@@ -277,14 +285,14 @@ async function main(): Promise<void> {
                 data: {
                     userId: users.regGroupManager.id,
                     assetId: regGroup.id,
-                    assetType: "RegulationGroup",
+                    assetType: AssetType.REGULATION_GROUP,
                 },
             });
             await prisma.userAsset.create({
                 data: {
                     userId: users.regGroupManager.id,
                     assetId: regUnit.id,
-                    assetType: "RegulationUnit",
+                    assetType: AssetType.REGULATION_UNIT,
                 },
             });
 
@@ -293,7 +301,7 @@ async function main(): Promise<void> {
                 data: {
                     userId: users.unitManager.id,
                     assetId: regUnit.id,
-                    assetType: "RegulationUnit",
+                    assetType: AssetType.REGULATION_UNIT,
                 },
             });
         }

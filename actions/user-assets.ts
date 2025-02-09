@@ -2,8 +2,9 @@
 
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { AssetType } from "@prisma/client";
 
-export async function addAssetToUser(userId: number, assetId: number, assetType: string) {
+export async function addAssetToUser(userId: number, assetId: number, assetType: AssetType) {
     try {
         await prisma.userAsset.create({
             data: {
@@ -20,7 +21,7 @@ export async function addAssetToUser(userId: number, assetId: number, assetType:
     }
 }
 
-export async function removeAssetFromUser(userId: number, assetId: number, assetType: string) {
+export async function removeAssetFromUser(userId: number, assetId: number, assetType: AssetType) {
     try {
         await prisma.userAsset.deleteMany({
             where: {
@@ -41,7 +42,7 @@ export async function addRoleToAsset(
     userId: number,
     accessProfileId: number,
     assetId: number,
-    assetType: string
+    assetType: AssetType
 ) {
     try {
         await prisma.userAccessProfile.create({
@@ -59,7 +60,7 @@ export async function removeRoleFromAsset(
     userId: number,
     accessProfileId: number,
     assetId: number,
-    assetType: string
+    assetType: AssetType
 ) {
     try {
         await prisma.userAccessProfile.deleteMany({
@@ -121,17 +122,17 @@ export async function getAllRoles() {
     }
 }
 
-export async function getAssetTypeById(assetId: number): Promise<string | null> {
+export async function getAssetTypeById(assetId: number): Promise<AssetType | null> {
     const portfolio = await prisma.portfolio.findUnique({ where: { id: assetId } });
-    if (portfolio) return "Portfolio";
+    if (portfolio) return AssetType.PORTFOLIO;
 
     const regulationGroup = await prisma.regulationGroup.findUnique({
         where: { id: assetId },
     });
-    if (regulationGroup) return "RegulationGroup";
+    if (regulationGroup) return AssetType.REGULATION_GROUP;
 
     const regulationUnit = await prisma.regulationUnit.findUnique({ where: { id: assetId } });
-    if (regulationUnit) return "RegulationUnit";
+    if (regulationUnit) return AssetType.REGULATION_UNIT;
 
     return null;
 }

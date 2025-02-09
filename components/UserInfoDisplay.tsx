@@ -16,6 +16,7 @@ import {
     getAssetTypeById,
 } from "@/actions/user-assets";
 import { Button } from "./ui/button";
+import { AssetType } from "@prisma/client";
 
 interface UserInfoDisplayProps {
     user: User | undefined;
@@ -34,7 +35,7 @@ interface RoleOption {
 export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
     const [newAsset, setNewAsset] = useState({
         assetId: 0,
-        assetType: "",
+        assetType: "" as AssetType | "",
         accessProfileId: 0,
     });
     const [portfolios, setPortfolios] = useState<AssetOption[]>([]);
@@ -43,7 +44,7 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
     const [accessProfiles, setRoles] = useState<RoleOption[]>([]);
     const [selectedRoles, setSelectedRoles] = useState<{ [assetKey: string]: number }>({});
 
-    function assetKeyString(assetId: number, assetType: string) {
+    function assetKeyString(assetId: number, assetType: AssetType) {
         return `${assetType}-${assetId}`;
     }
 
@@ -75,13 +76,13 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
         }
     };
 
-    const handleRemoveAsset = async (assetId: number, assetType: string) => {
+    const handleRemoveAsset = async (assetId: number, assetType: AssetType) => {
         if (user) {
             await removeAssetFromUser(user.id, assetId, assetType);
         }
     };
 
-    const handleAddRole = async (assetId: number, assetType: string) => {
+    const handleAddRole = async (assetId: number, assetType: AssetType) => {
         if (user) {
             const currentKey = assetKeyString(assetId, assetType);
             const selectedRole = selectedRoles[currentKey];
@@ -93,7 +94,7 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
 
     const handleRemoveRole = async (
         assetId: number,
-        assetType: string,
+        assetType: AssetType,
         accessProfileId: number
     ) => {
         if (user) {
@@ -112,7 +113,7 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
         }
     };
 
-    function handleRoleChange(assetId: number, assetType: string, accessProfileId: number) {
+    function handleRoleChange(assetId: number, assetType: AssetType, accessProfileId: number) {
         setSelectedRoles((prev) => ({
             ...prev,
             [assetKeyString(assetId, assetType)]: accessProfileId,
@@ -192,7 +193,10 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                                     <Button
                                         variant={"destructive"}
                                         onClick={() =>
-                                            handleRemoveAsset(asset.id || 0, asset.assetType)
+                                            handleRemoveAsset(
+                                                asset.id || 0,
+                                                asset.assetType as AssetType
+                                            )
                                         }
                                     >
                                         Remove Asset
@@ -206,13 +210,16 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                                             className="font-normal"
                                             value={
                                                 selectedRoles[
-                                                    assetKeyString(asset.id || 0, asset.assetType)
+                                                    assetKeyString(
+                                                        asset.id || 0,
+                                                        asset.assetType as AssetType
+                                                    )
                                                 ] || ""
                                             }
                                             onChange={(e) =>
                                                 handleRoleChange(
                                                     asset.id || 0,
-                                                    asset.assetType,
+                                                    asset.assetType as AssetType,
                                                     parseInt(e.target.value)
                                                 )
                                             }
@@ -230,7 +237,10 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                                         </select>
                                         <Button
                                             onClick={() =>
-                                                handleAddRole(asset.id || 0, asset.assetType)
+                                                handleAddRole(
+                                                    asset.id || 0,
+                                                    asset.assetType as AssetType
+                                                )
                                             }
                                         >
                                             Add Role
@@ -281,7 +291,7 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                                                     onClick={() =>
                                                         handleRemoveRole(
                                                             asset.id || 0,
-                                                            asset.assetType,
+                                                            asset.assetType as AssetType,
                                                             accessProfile.id
                                                         )
                                                     }
