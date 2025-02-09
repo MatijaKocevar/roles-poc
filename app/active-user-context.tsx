@@ -54,7 +54,7 @@ export interface User {
 type ActiveUserContextType = {
     user: User | null;
     setUser: (user: User | null) => void;
-    hasPermission: (moduleSlug: string, permKey: keyof Permission) => boolean;
+    hasPermission: (moduleId: number, permission: "VIEW" | "MANAGE") => boolean;
 };
 
 const ActiveUserContext = createContext<ActiveUserContextType | undefined>(undefined);
@@ -73,8 +73,20 @@ export function ActiveUserProvider({ children }: { children: ReactNode }) {
         fetchActiveUser();
     }, []);
 
-    const hasPermission = (moduleSlug: string, permKey: keyof Permission) => {
-        return true;
+    const hasPermission = (moduleId: number, permission: "VIEW" | "MANAGE"): boolean => {
+        if (!user) return false;
+
+        // Super admin has all permissions
+        if (user.role === "SUPER_ADMIN") return true;
+
+        // Check each asset's access profiles for the required permission
+        return user.assets.some((asset) =>
+            asset.accessProfiles.some((profile) =>
+                profile.permissions.some(
+                    (perm) => perm.moduleId === moduleId && perm.permission === permission
+                )
+            )
+        );
     };
 
     if (user === null) {
