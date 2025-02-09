@@ -9,12 +9,10 @@ import {
     removeAssetFromUser,
     addRoleToAsset,
     removeRoleFromAsset,
-    getAllPortfolios,
-    getAllRegulationGroups,
-    getAllRegulationUnits,
     getAllRoles,
     getAssetTypeById,
 } from "@/actions/user-assets";
+import { getAvailableAssets } from "@/actions/available-assets";
 import { Button } from "./ui/button";
 import { AssetType } from "@prisma/client";
 
@@ -50,12 +48,10 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
 
     useEffect(() => {
         const fetchData = async () => {
-            const portfoliosData = await getAllPortfolios();
-            setPortfolios(portfoliosData);
-            const regulationGroupsData = await getAllRegulationGroups();
-            setRegulationGroups(regulationGroupsData);
-            const regulationUnitsData = await getAllRegulationUnits();
-            setRegulationUnits(regulationUnitsData);
+            const { portfolios, regulationGroups, regulationUnits } = await getAvailableAssets();
+            setPortfolios(portfolios);
+            setRegulationGroups(regulationGroups);
+            setRegulationUnits(regulationUnits);
             const accessProfilesData = await getAllRoles();
             setRoles(accessProfilesData);
         };
