@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { FlatAsset, getActiveUser } from "../actions/active-user";
+import { FlatAsset, getActiveUser } from "../actions/user";
 
 type Module = {
     id: number;
@@ -37,6 +37,10 @@ export interface User {
     firstName: string;
     lastName: string;
     assets: FlatAsset[];
+    company: {
+        id: number;
+        name: string;
+    };
 }
 
 type ActiveUserContextType = {

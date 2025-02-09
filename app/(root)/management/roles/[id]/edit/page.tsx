@@ -10,7 +10,6 @@ export default async function EditRolePage({
 
     return (
         <div>
-            <h1>Edit Role</h1>
             <EditRoleForm roleId={id} />
         </div>
     );

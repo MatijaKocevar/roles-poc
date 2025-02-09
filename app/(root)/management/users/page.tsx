@@ -10,6 +10,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { Button } from "../../../../components/ui/button";
 
 export const dynamic = "force-dynamic";
 
@@ -42,11 +43,8 @@ export default async function UsersPage() {
                             </TableCell>
                             <TableCell>{user.email}</TableCell>
                             <TableCell>
-                                <Link
-                                    href={`/management/users/${user.id}/edit`}
-                                    className="text-blue-500"
-                                >
-                                    View
+                                <Link href={`/management/users/${user.id}/edit`}>
+                                    <Button>View</Button>
                                 </Link>
                             </TableCell>
                         </TableRow>

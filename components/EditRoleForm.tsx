@@ -2,10 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { updateRole } from "@/actions/updateRole";
-import { getModulesTree } from "@/actions/getModulesTree";
-import { getPermissionsForRole } from "@/actions/getPermissionsForRole";
-import { getRole } from "@/actions/getRole";
+import { getModulesTree } from "@/actions/modules";
 import {
     Table,
     TableBody,
@@ -15,6 +12,8 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import React from "react";
+import { getPermissionsForRole, getRole, updateRole } from "../actions/roles";
+import { Button } from "./ui/button";
 
 interface EditRoleFormProps {
     roleId: string;
@@ -29,14 +28,7 @@ export default function EditRoleForm({ roleId }: EditRoleFormProps) {
     const [selectedModules, setSelectedModules] = useState<
         Array<{ id: number; title: string; submodules: Array<{ id: number; title: string }> }>
     >([]);
-    const [permissions, setPermissions] = useState<{
-        [moduleId: number]: {
-            canView: boolean;
-            canEdit: boolean;
-            canCreate: boolean;
-            canDelete: boolean;
-        };
-    }>({});
+    const [permissions, setPermissions] = useState<{ [moduleId: number]: "VIEW" | "MANAGE" }>({});
     const router = useRouter();
 
     const fetchRoleName = useCallback(async () => {
@@ -64,13 +56,10 @@ export default function EditRoleForm({ roleId }: EditRoleFormProps) {
         fetchData();
     }, [roleId, fetchRoleName]);
 
-    const handlePermissionChange = (moduleId: number, permissionKey: string, value: boolean) => {
+    const handlePermissionChange = (moduleId: number, newPermission: "VIEW" | "MANAGE") => {
         setPermissions((prev) => ({
             ...prev,
-            [moduleId]: {
-                ...prev[moduleId],
-                [permissionKey]: value,
-            },
+            [moduleId]: newPermission,
         }));
     };
 
@@ -80,7 +69,7 @@ export default function EditRoleForm({ roleId }: EditRoleFormProps) {
             setSelectedModules((prev) => [...prev, moduleToAdd]);
             setPermissions((prev) => ({
                 ...prev,
-                [id]: { canView: false, canEdit: false, canCreate: false, canDelete: false },
+                [id]: "VIEW",
             }));
         }
     };
@@ -135,11 +124,8 @@ export default function EditRoleForm({ roleId }: EditRoleFormProps) {
                 <TableHeader>
                     <TableRow>
                         <TableHead className="text-center">Module</TableHead>
-                        <TableHead className="text-center">View</TableHead>
-                        <TableHead className="text-center">Edit</TableHead>
-                        <TableHead className="text-center">Create</TableHead>
-                        <TableHead className="text-center">Delete</TableHead>
-                        <TableHead className="text-center">Remove</TableHead>
+                        <TableHead className="text-center">Permission</TableHead>
+                        <TableHead className="text-center">Actions</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -148,56 +134,18 @@ export default function EditRoleForm({ roleId }: EditRoleFormProps) {
                             <TableRow>
                                 <TableCell>{module.title}</TableCell>
                                 <TableCell className="text-center">
-                                    <input
-                                        type="checkbox"
-                                        checked={permissions[module.id]?.canView || false}
+                                    <select
+                                        value={permissions[module.id] || "VIEW"}
                                         onChange={(e) =>
                                             handlePermissionChange(
                                                 module.id,
-                                                "canView",
-                                                e.target.checked
+                                                e.target.value as "VIEW" | "MANAGE"
                                             )
                                         }
-                                    />
-                                </TableCell>
-                                <TableCell className="text-center">
-                                    <input
-                                        type="checkbox"
-                                        checked={permissions[module.id]?.canEdit || false}
-                                        onChange={(e) =>
-                                            handlePermissionChange(
-                                                module.id,
-                                                "canEdit",
-                                                e.target.checked
-                                            )
-                                        }
-                                    />
-                                </TableCell>
-                                <TableCell className="text-center">
-                                    <input
-                                        type="checkbox"
-                                        checked={permissions[module.id]?.canCreate || false}
-                                        onChange={(e) =>
-                                            handlePermissionChange(
-                                                module.id,
-                                                "canCreate",
-                                                e.target.checked
-                                            )
-                                        }
-                                    />
-                                </TableCell>
-                                <TableCell className="text-center">
-                                    <input
-                                        type="checkbox"
-                                        checked={permissions[module.id]?.canDelete || false}
-                                        onChange={(e) =>
-                                            handlePermissionChange(
-                                                module.id,
-                                                "canDelete",
-                                                e.target.checked
-                                            )
-                                        }
-                                    />
+                                    >
+                                        <option value="VIEW">VIEW</option>
+                                        <option value="MANAGE">MANAGE</option>
+                                    </select>
                                 </TableCell>
                                 <TableCell className="text-center">
                                     <button
@@ -212,56 +160,18 @@ export default function EditRoleForm({ roleId }: EditRoleFormProps) {
                                 <TableRow key={sub.id}>
                                     <TableCell className="pl-8">{sub.title}</TableCell>
                                     <TableCell className="text-center">
-                                        <input
-                                            type="checkbox"
-                                            checked={permissions[sub.id]?.canView || false}
+                                        <select
+                                            value={permissions[sub.id] || "VIEW"}
                                             onChange={(e) =>
                                                 handlePermissionChange(
                                                     sub.id,
-                                                    "canView",
-                                                    e.target.checked
+                                                    e.target.value as "VIEW" | "MANAGE"
                                                 )
                                             }
-                                        />
-                                    </TableCell>
-                                    <TableCell className="text-center">
-                                        <input
-                                            type="checkbox"
-                                            checked={permissions[sub.id]?.canEdit || false}
-                                            onChange={(e) =>
-                                                handlePermissionChange(
-                                                    sub.id,
-                                                    "canEdit",
-                                                    e.target.checked
-                                                )
-                                            }
-                                        />
-                                    </TableCell>
-                                    <TableCell className="text-center">
-                                        <input
-                                            type="checkbox"
-                                            checked={permissions[sub.id]?.canCreate || false}
-                                            onChange={(e) =>
-                                                handlePermissionChange(
-                                                    sub.id,
-                                                    "canCreate",
-                                                    e.target.checked
-                                                )
-                                            }
-                                        />
-                                    </TableCell>
-                                    <TableCell className="text-center">
-                                        <input
-                                            type="checkbox"
-                                            checked={permissions[sub.id]?.canDelete || false}
-                                            onChange={(e) =>
-                                                handlePermissionChange(
-                                                    sub.id,
-                                                    "canDelete",
-                                                    e.target.checked
-                                                )
-                                            }
-                                        />
+                                        >
+                                            <option value="VIEW">VIEW</option>
+                                            <option value="MANAGE">MANAGE</option>
+                                        </select>
                                     </TableCell>
                                     <TableCell className="text-center">
                                         <button
@@ -277,7 +187,7 @@ export default function EditRoleForm({ roleId }: EditRoleFormProps) {
                             ))}
                             {/* Add Submodule dropdown for this module */}
                             <TableRow>
-                                <TableCell colSpan={6} className="pl-8">
+                                <TableCell colSpan={3} className="pl-8">
                                     <select
                                         defaultValue=""
                                         onChange={(e) => {
@@ -311,12 +221,7 @@ export default function EditRoleForm({ roleId }: EditRoleFormProps) {
                                                         );
                                                         setPermissions((prev) => ({
                                                             ...prev,
-                                                            [subId]: {
-                                                                canView: false,
-                                                                canEdit: false,
-                                                                canCreate: false,
-                                                                canDelete: false,
-                                                            },
+                                                            [subId]: "VIEW",
                                                         }));
                                                     }
                                                 }
@@ -363,12 +268,12 @@ export default function EditRoleForm({ roleId }: EditRoleFormProps) {
                 </select>
             </div>
             <div className="flex items-center justify-between mt-4">
-                <button
+                <Button
                     type="submit"
                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                 >
                     Update Role
-                </button>
+                </Button>
             </div>
         </form>
     );

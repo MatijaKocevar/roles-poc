@@ -37,38 +37,26 @@ export async function removeAssetFromUser(userId: number, assetId: number, asset
     }
 }
 
-export async function addRoleToAsset(roleId: number, assetId: number, assetType: string) {
-    try {
-        await prisma.roleAsset.create({
-            data: {
-                roleId: roleId,
-                assetId: assetId,
-                assetType: assetType,
-            },
-        });
-        revalidatePath(`/`);
-        return { success: true };
-    } catch (error) {
-        console.error("Error adding role to asset:", error);
-        return { success: false, error: "Failed to add role to asset" };
-    }
+export async function addRoleToAsset(
+    userId: number,
+    roleId: number,
+    assetId: number,
+    assetType: string
+) {
+    await prisma.userAssetRole.create({
+        data: { userId, roleId, assetId, assetType },
+    });
 }
 
-export async function removeRoleFromAsset(roleId: number, assetId: number, assetType: string) {
-    try {
-        await prisma.roleAsset.deleteMany({
-            where: {
-                roleId: roleId,
-                assetId: assetId,
-                assetType: assetType,
-            },
-        });
-        revalidatePath(`/`);
-        return { success: true };
-    } catch (error) {
-        console.error("Error removing role from asset:", error);
-        return { success: false, error: "Failed to remove role from asset" };
-    }
+export async function removeRoleFromAsset(
+    userId: number,
+    roleId: number,
+    assetId: number,
+    assetType: string
+) {
+    await prisma.userAssetRole.deleteMany({
+        where: { userId, roleId, assetId, assetType },
+    });
 }
 
 export async function getAllPortfolios() {

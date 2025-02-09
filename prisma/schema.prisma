@@ -12,14 +12,29 @@ model Role {
   name        String
   permissions Permission[]
   roleAssets  RoleAsset[]
+  userAssetRoles UserAssetRole[]
+}
+
+model Company {
+  id         Int         @id @default(autoincrement())
+  name       String
+  users      User[]
+  portfolios Portfolio[]
 }
 
 model User {
-  id        Int    @id @default(autoincrement())
-  email    String @unique
-  firstName String
-  lastName String
-  userAssets UserAsset[] // Added inverse relation for UserAsset
+  id         Int       @id @default(autoincrement())
+  email      String    @unique
+  firstName  String
+  lastName   String
+  companyId  Int
+  company    Company   @relation(fields: [companyId], references: [id])
+  userAssets UserAsset[]
+  userAssetRoles UserAssetRole[]
+  // Inverse relations for ownership using the predefined relation names
+  ownedPortfolios        Portfolio[]         @relation("PortfolioOwner")
+  ownedRegulationGroups  RegulationGroup[]   @relation("RegulationGroupOwner")
+  ownedRegulationUnits   RegulationUnit[]    @relation("RegulationUnitOwner")
 }
 
 model Module {
@@ -32,38 +47,48 @@ model Module {
   permissions Permission[]
 }
 
+enum PermissionType {
+  VIEW
+  MANAGE
+}
+
 model Permission {
-  id        Int     @id @default(autoincrement())
-  roleId    Int
-  moduleId  Int
-  canView   Boolean @default(false)
-  canEdit   Boolean @default(false)
-  canDelete Boolean @default(false)
-  canCreate Boolean @default(false)
-  role      Role    @relation(fields: [roleId], references: [id])
-  module    Module    @relation(fields: [moduleId], references: [id])
+  id         Int            @id @default(autoincrement())
+  roleId     Int
+  moduleId   Int
+  permission PermissionType @default(VIEW)
+  role       Role           @relation(fields: [roleId], references: [id])
+  module     Module         @relation(fields: [moduleId], references: [id])
   @@unique([roleId, moduleId])
 }
 
 model Portfolio {
-  id                         Int                         @id @default(autoincrement())
-  name                       String
-  groups                     RegulationGroup[]
+  id         Int         @id @default(autoincrement())
+  name       String
+  companyId  Int
+  company    Company     @relation(fields: [companyId], references: [id])
+  ownerId    Int
+  owner      User        @relation(fields: [ownerId], references: [id], name: "PortfolioOwner")
+  groups     RegulationGroup[]
 }
 
 model RegulationGroup {
-  id                        Int                      @id @default(autoincrement())
-  name                      String
-  portfolio                 Portfolio                @relation(fields: [portfolioId], references: [id])
-  portfolioId               Int
-  units                     RegulationUnit[]
+  id          Int               @id @default(autoincrement())
+  name        String
+  portfolio   Portfolio         @relation(fields: [portfolioId], references: [id])
+  portfolioId Int
+  ownerId     Int
+  owner       User              @relation(fields: [ownerId], references: [id], name: "RegulationGroupOwner")
+  units       RegulationUnit[]
 }
 
 model RegulationUnit {
-  id                        Int                      @id @default(autoincrement())
-  name                      String
-  group                     RegulationGroup          @relation(fields: [groupId], references: [id])
-  groupId                   Int
+  id       Int              @id @default(autoincrement())
+  name     String
+  group    RegulationGroup  @relation(fields: [groupId], references: [id])
+  groupId  Int
+  ownerId  Int
+  owner    User             @relation(fields: [ownerId], references: [id], name: "RegulationUnitOwner")
 }
 
 model ActiveUser {
@@ -88,4 +113,15 @@ model UserAsset {
   assetType String   // e.g., "Portfolio", "RegulationGroup", "RegulationUnit"
   user      User     @relation(fields: [userId], references: [id])
   @@unique([userId, assetId, assetType])
+}
+
+model UserAssetRole {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  roleId    Int
+  assetId   Int
+  assetType String
+  user      User     @relation(fields: [userId], references: [id])
+  role      Role     @relation(fields: [roleId], references: [id])
+  @@unique([userId, roleId, assetId, assetType])
 }
