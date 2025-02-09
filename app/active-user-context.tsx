@@ -54,7 +54,7 @@ export interface User {
 type ActiveUserContextType = {
     user: User | null;
     setUser: (user: User | null) => void;
-    hasPermission: (moduleId: number, permission: "VIEW" | "MANAGE") => boolean;
+    hasPermission: (moduleSlug: string, permission: "VIEW" | "MANAGE") => boolean;
 };
 
 const ActiveUserContext = createContext<ActiveUserContextType | undefined>(undefined);
@@ -73,7 +73,7 @@ export function ActiveUserProvider({ children }: { children: ReactNode }) {
         fetchActiveUser();
     }, []);
 
-    const hasPermission = (moduleId: number, permission: "VIEW" | "MANAGE"): boolean => {
+    const hasPermission = (moduleSlug: string, permission: "VIEW" | "MANAGE"): boolean => {
         if (!user) return false;
 
         // Super admin has all permissions
@@ -83,7 +83,7 @@ export function ActiveUserProvider({ children }: { children: ReactNode }) {
         return user.assets.some((asset) =>
             asset.accessProfiles.some((profile) =>
                 profile.permissions.some(
-                    (perm) => perm.moduleId === moduleId && perm.permission === permission
+                    (perm) => perm.module.slug === moduleSlug && perm.permission === permission
                 )
             )
         );
