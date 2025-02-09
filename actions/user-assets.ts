@@ -43,9 +43,16 @@ export async function addRoleToAsset(
     assetId: number,
     assetType: string
 ) {
-    await prisma.userAssetRole.create({
-        data: { userId, accessProfileId, assetId, assetType },
-    });
+    try {
+        await prisma.userAccessProfile.create({
+            data: { userId, accessProfileId, assetId, assetType },
+        });
+        revalidatePath(`/`);
+        return { success: true };
+    } catch (error) {
+        console.error("Error adding role to asset:", error);
+        return { success: false, error: "Failed to add role to asset" };
+    }
 }
 
 export async function removeRoleFromAsset(
@@ -54,9 +61,16 @@ export async function removeRoleFromAsset(
     assetId: number,
     assetType: string
 ) {
-    await prisma.userAssetRole.deleteMany({
-        where: { userId, accessProfileId, assetId, assetType },
-    });
+    try {
+        await prisma.userAccessProfile.deleteMany({
+            where: { userId, accessProfileId, assetId, assetType },
+        });
+        revalidatePath(`/`);
+        return { success: true };
+    } catch (error) {
+        console.error("Error removing role from asset:", error);
+        return { success: false, error: "Failed to remove role from asset" };
+    }
 }
 
 export async function getAllPortfolios() {
