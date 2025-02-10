@@ -12,7 +12,6 @@ export interface FlatAsset {
         name: string;
         permissions: {
             id: number;
-            moduleId: number;
             accessProfileId: number;
             permission: "VIEW" | "MANAGE";
             module: {
@@ -86,7 +85,6 @@ export async function getUserById(userId: number) {
                         select: {
                             id: true,
                             permission: true,
-                            moduleId: true,
                             module: {
                                 select: {
                                     id: true,
@@ -209,7 +207,6 @@ export async function getActiveUser() {
                         select: {
                             id: true,
                             permission: true,
-                            moduleId: true,
                             module: {
                                 select: {
                                     id: true,
