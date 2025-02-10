@@ -109,17 +109,21 @@ export async function getUserById(userId: number) {
     const userRolesMap = new Map<string, any[]>();
     for (const r of userAssetRoles) {
         const key = `${r.assetType}:${r.assetId}`;
+
         if (!userRolesMap.has(key)) userRolesMap.set(key, []);
+
         userRolesMap.get(key)?.push(r.accessProfile);
     }
 
     const flatAssets = user.userAssets.map((ua) => {
         let assetDetails;
+
         if (ua.assetType === AssetType.PORTFOLIO) assetDetails = portfolioMap[ua.assetId];
         if (ua.assetType === AssetType.REGULATION_GROUP) assetDetails = groupMap[ua.assetId];
         if (ua.assetType === AssetType.REGULATION_UNIT) assetDetails = unitMap[ua.assetId];
 
         const accessProfiles = userRolesMap.get(`${ua.assetType}:${ua.assetId}`) || [];
+
         return {
             assetType: ua.assetType,
             id: assetDetails?.id,
@@ -143,6 +147,7 @@ export async function getUserById(userId: number) {
 
 export async function getActiveUser() {
     const active = await prisma.activeUser.findUnique({ where: { id: 1 } });
+
     if (!active) return null;
 
     const user = await prisma.user.findUnique({
@@ -225,6 +230,7 @@ export async function getActiveUser() {
     const unitMap = Object.fromEntries(units.map((u) => [u.id, u]));
 
     const userRolesMap = new Map<string, any[]>();
+
     for (const r of userAssetRoles) {
         const key = `${r.assetType}:${r.assetId}`;
         if (!userRolesMap.has(key)) userRolesMap.set(key, []);
@@ -233,6 +239,7 @@ export async function getActiveUser() {
 
     const flatAssets = user.userAssets.map((ua) => {
         let assetDetails;
+
         if (ua.assetType === AssetType.PORTFOLIO) assetDetails = portfolioMap[ua.assetId];
         if (ua.assetType === AssetType.REGULATION_GROUP) assetDetails = groupMap[ua.assetId];
         if (ua.assetType === AssetType.REGULATION_UNIT) assetDetails = unitMap[ua.assetId];
@@ -264,9 +271,11 @@ export async function getUsersList(activeUserId: number) {
         where: { id: activeUserId },
         select: { id: true, role: true, companyId: true },
     });
+
     if (!activeUser) return [];
 
     let whereClause = {};
+
     if (activeUser.role === "SUPER_ADMIN") {
         whereClause = {};
     } else if (activeUser.role === "COMPANY_MANAGER") {

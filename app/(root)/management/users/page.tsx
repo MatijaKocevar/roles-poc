@@ -17,9 +17,11 @@ export const dynamic = "force-dynamic";
 
 export default async function UsersPage() {
     const canView = await hasViewPermission("management-users");
+
     if (!canView) redirect("/unauthorized");
 
     const activeUserRecord = await prisma.activeUser.findUnique({ where: { id: 1 } });
+
     if (!activeUserRecord?.userId) return <div>No active user.</div>;
 
     const users = await getUsersList(activeUserRecord.userId);
@@ -28,6 +30,7 @@ export default async function UsersPage() {
         where: { id: activeUserRecord.userId },
         select: { id: true, role: true, companyId: true },
     });
+
     if (!activeUser) return <div>Active user not found.</div>;
 
     return (

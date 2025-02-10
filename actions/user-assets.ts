@@ -13,10 +13,13 @@ export async function addAssetToUser(userId: number, assetId: number, assetType:
                 assetType: assetType,
             },
         });
-        revalidatePath(`/`); // Revalidate the home page to reflect changes
+
+        revalidatePath(`/`);
+
         return { success: true };
     } catch (error) {
         console.error("Error adding asset to user:", error);
+
         return { success: false, error: "Failed to add asset to user" };
     }
 }
@@ -30,10 +33,13 @@ export async function removeAssetFromUser(userId: number, assetId: number, asset
                 assetType: assetType,
             },
         });
+
         revalidatePath(`/`);
+
         return { success: true };
     } catch (error) {
         console.error("Error removing asset from user:", error);
+
         return { success: false, error: "Failed to remove asset from user" };
     }
 }
@@ -46,12 +52,20 @@ export async function addRoleToAsset(
 ) {
     try {
         await prisma.userAccessProfile.create({
-            data: { userId, accessProfileId, assetId, assetType },
+            data: {
+                userId,
+                accessProfileId,
+                assetId,
+                assetType,
+            },
         });
+
         revalidatePath(`/`);
+
         return { success: true };
     } catch (error) {
         console.error("Error adding role to asset:", error);
+
         return { success: false, error: "Failed to add role to asset" };
     }
 }
@@ -66,10 +80,13 @@ export async function removeRoleFromAsset(
         await prisma.userAccessProfile.deleteMany({
             where: { userId, accessProfileId, assetId, assetType },
         });
+
         revalidatePath(`/`);
+
         return { success: true };
     } catch (error) {
         console.error("Error removing role from asset:", error);
+
         return { success: false, error: "Failed to remove role from asset" };
     }
 }
@@ -79,9 +96,11 @@ export async function getAllPortfolios() {
         const portfolios = await prisma.portfolio.findMany({
             select: { id: true, name: true },
         });
+
         return portfolios;
     } catch (error) {
         console.error("Error fetching portfolios:", error);
+
         return [];
     }
 }
@@ -91,9 +110,11 @@ export async function getAllRegulationGroups() {
         const regulationGroups = await prisma.regulationGroup.findMany({
             select: { id: true, name: true },
         });
+
         return regulationGroups;
     } catch (error) {
         console.error("Error fetching regulation groups:", error);
+
         return [];
     }
 }
@@ -103,9 +124,11 @@ export async function getAllRegulationUnits() {
         const regulationUnits = await prisma.regulationUnit.findMany({
             select: { id: true, name: true },
         });
+
         return regulationUnits;
     } catch (error) {
         console.error("Error fetching regulation units:", error);
+
         return [];
     }
 }
@@ -115,9 +138,11 @@ export async function getAllRoles() {
         const accessProfiles = await prisma.accessProfile.findMany({
             select: { id: true, name: true },
         });
+
         return accessProfiles;
     } catch (error) {
         console.error("Error fetching accessProfiles:", error);
+
         return [];
     }
 }
@@ -129,9 +154,11 @@ export async function getAssetTypeById(assetId: number): Promise<AssetType | nul
     const regulationGroup = await prisma.regulationGroup.findUnique({
         where: { id: assetId },
     });
+
     if (regulationGroup) return AssetType.REGULATION_GROUP;
 
     const regulationUnit = await prisma.regulationUnit.findUnique({ where: { id: assetId } });
+
     if (regulationUnit) return AssetType.REGULATION_UNIT;
 
     return null;

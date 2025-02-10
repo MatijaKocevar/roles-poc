@@ -28,7 +28,6 @@ export default function EditAccessProfileForm({ accessProfileId }: EditAccessPro
     const [availableModules, setAvailableModules] = useState<
         Array<{ id: number; title: string; submodules: Array<{ id: number; title: string }> }>
     >([]);
-    // selectedModules initialized from permissions assignment.
     const [selectedModules, setSelectedModules] = useState<
         Array<{ id: number; title: string; submodules: Array<{ id: number; title: string }> }>
     >([]);
@@ -43,10 +42,13 @@ export default function EditAccessProfileForm({ accessProfileId }: EditAccessPro
     useEffect(() => {
         async function fetchData() {
             const tree = await getModulesTree();
+
             setAvailableModules(tree);
+
             const perms = await getPermissionsForAccessProfile(accessProfileId);
+
             setPermissions(perms);
-            // Initialize selectedModules only with modules that have an entry in perms.
+
             const selected = tree
                 .filter((m) => perms[m.id] !== undefined)
                 .map((m) => ({
@@ -54,8 +56,10 @@ export default function EditAccessProfileForm({ accessProfileId }: EditAccessPro
                     title: m.title,
                     submodules: m.submodules.filter((s) => perms[s.id] !== undefined),
                 }));
+
             setSelectedModules(selected);
         }
+
         fetchAccessProfileName();
         fetchData();
     }, [accessProfileId, fetchAccessProfileName]);
@@ -69,6 +73,7 @@ export default function EditAccessProfileForm({ accessProfileId }: EditAccessPro
 
     const handleAddModule = (id: number) => {
         const moduleToAdd = availableModules.find((m) => m.id === id);
+
         if (moduleToAdd && !selectedModules.find((m) => m.id === id)) {
             setSelectedModules((prev) => [...prev, moduleToAdd]);
             setPermissions((prev) => ({
@@ -90,6 +95,7 @@ export default function EditAccessProfileForm({ accessProfileId }: EditAccessPro
         } else {
             setSelectedModules((prev) => prev.filter((m) => m.id !== id));
         }
+
         setPermissions((prev) => {
             const updated = { ...prev };
             delete updated[id];
@@ -99,6 +105,7 @@ export default function EditAccessProfileForm({ accessProfileId }: EditAccessPro
 
     async function handleSubmit(event: any) {
         event.preventDefault();
+
         await updateAccessProfile(accessProfileId, name, permissions);
 
         router.push("/management/accessProfiles");
@@ -110,7 +117,6 @@ export default function EditAccessProfileForm({ accessProfileId }: EditAccessPro
 
     return (
         <form onSubmit={handleSubmit} className="max-w-md mx-auto mt-8">
-            {/* AccessProfile Name Section */}
             <div className="mb-4">
                 <label htmlFor="name" className="block text-gray-700 text-sm font-bold mb-2">
                     Access Profile Name:
@@ -123,7 +129,6 @@ export default function EditAccessProfileForm({ accessProfileId }: EditAccessPro
                     onChange={(e) => setName(e.target.value)}
                 />
             </div>
-            {/* Selected Modules Table */}
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -189,7 +194,6 @@ export default function EditAccessProfileForm({ accessProfileId }: EditAccessPro
                                     </TableCell>
                                 </TableRow>
                             ))}
-                            {/* Add Submodule dropdown for this module */}
                             <TableRow>
                                 <TableCell colSpan={3} className="pl-8">
                                     <select
@@ -252,7 +256,6 @@ export default function EditAccessProfileForm({ accessProfileId }: EditAccessPro
                     ))}
                 </TableBody>
             </Table>
-            {/* Add Module dropdown */}
             <div className="mt-4">
                 <select
                     defaultValue=""

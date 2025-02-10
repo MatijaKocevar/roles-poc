@@ -49,10 +49,13 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
     useEffect(() => {
         const fetchData = async () => {
             const { portfolios, regulationGroups, regulationUnits } = await getAvailableAssets();
+
             setPortfolios(portfolios);
             setRegulationGroups(regulationGroups);
             setRegulationUnits(regulationUnits);
+
             const accessProfilesData = await getAllRoles();
+
             setRoles(accessProfilesData);
         };
 
@@ -62,12 +65,14 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
     const handleAddAsset = async () => {
         if (user && newAsset.assetId && newAsset.assetType && newAsset.accessProfileId) {
             await addAssetToUser(user.id, newAsset.assetId, newAsset.assetType);
+
             await addRoleToAsset(
                 user.id,
                 newAsset.accessProfileId,
                 newAsset.assetId,
                 newAsset.assetType
             );
+
             setNewAsset({ assetId: 0, assetType: "", accessProfileId: 0 });
         }
     };
@@ -82,6 +87,7 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
         if (user) {
             const currentKey = assetKeyString(assetId, assetType);
             const selectedRole = selectedRoles[currentKey];
+
             if (selectedRole) {
                 await addRoleToAsset(user.id, selectedRole, assetId, assetType);
             }
@@ -100,8 +106,11 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
 
     const handleAssetChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
         const assetId = parseInt(e.target.value);
+
         setNewAsset((prev) => ({ ...prev, assetId: assetId }));
+
         const assetType = await getAssetTypeById(assetId);
+
         if (assetType) {
             setNewAsset((prev) => ({ ...prev, assetType: assetType }));
         } else {
@@ -124,30 +133,25 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                     <div className="font-bold text-xl text-gray-700">{user?.lastName}</div>
                 </div>
                 <div className="text-gray-700">{user?.email}</div>
-                {/* New line for company name */}
                 {user?.company && <div className="text-gray-700">Company: {user.company.name}</div>}
             </div>
             <div className="flex gap-2">
-                {/* Add Asset Form */}
                 <select
                     value={newAsset.assetId === 0 ? "" : newAsset.assetId}
                     onChange={handleAssetChange}
                 >
                     <option value="">Select Asset</option>
                     {portfolios.map((portfolio) => (
-                        // Key set here using portfolio.id
                         <option key={portfolio.id} value={portfolio.id}>
                             {portfolio.name} (Portfolio)
                         </option>
                     ))}
                     {regulationGroups.map((group) => (
-                        // Key set here using group.id
                         <option key={group.id} value={group.id}>
                             {group.name} (Regulation Group)
                         </option>
                     ))}
                     {regulationUnits.map((unit) => (
-                        // Key set here using unit.id
                         <option key={unit.id} value={unit.id}>
                             {unit.name} (Regulation Unit)
                         </option>
@@ -161,7 +165,6 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                 >
                     <option value="">Select Role</option>
                     {accessProfiles.map((accessProfile) => (
-                        // Key set here using accessProfile.id
                         <option key={accessProfile.id} value={accessProfile.id}>
                             {accessProfile.name}
                         </option>
@@ -172,7 +175,6 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
 
             <div className="space-y-4">
                 {user?.assets.map((asset, idx) => {
-                    // Create a guaranteed unique key for the asset
                     const assetKey = `${asset.assetType}-${asset.id ?? "unknown"}-${idx}`;
                     return (
                         <div
@@ -201,7 +203,6 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                                 <div className="flex flex-row items-center gap-10">
                                     <span className="font-semibold">Roles:</span>
                                     <div className="flex gap-2">
-                                        {/* Add/Remove Role Form */}
                                         <select
                                             className="font-normal"
                                             value={
@@ -222,7 +223,6 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                                         >
                                             <option value="">Select Role</option>
                                             {accessProfiles.map((accessProfile) => (
-                                                // Key set here using accessProfile.id
                                                 <option
                                                     key={accessProfile.id}
                                                     value={accessProfile.id}
@@ -245,7 +245,6 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                                 </div>
                                 <ul className="mt-2 space-y-1">
                                     {asset.accessProfiles.map((accessProfile, accessProfileIdx) => {
-                                        // Create a composite key for the accessProfile
                                         const compositeKey = `${assetKey}-accessProfile-${
                                             accessProfile.id ?? "unknown"
                                         }-${accessProfileIdx}`;
@@ -273,7 +272,6 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                                                     place="right"
                                                 >
                                                     {accessProfile.permissions?.map((perm) => (
-                                                        // Key set here using compositeKey and perm.id
                                                         <div
                                                             className="z-50"
                                                             key={`perm-${compositeKey}-${perm.id}`}

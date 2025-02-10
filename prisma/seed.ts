@@ -4,10 +4,9 @@ import { execSync } from "child_process";
 const prisma = new PrismaClient();
 
 async function resetDatabase(): Promise<void> {
-    // WARNING: This drops and recreates the public schema. Use with caution.
     await prisma.$executeRaw`DROP SCHEMA public CASCADE;`;
     await prisma.$executeRaw`CREATE SCHEMA public;`;
-    // Reapply schema (ensuring tables exist)
+
     execSync("npx prisma db push", { stdio: "inherit" });
 }
 
@@ -42,7 +41,6 @@ async function safeCreateUserAsset(data: {
 }
 
 async function main(): Promise<void> {
-    // Reset database schema and clear data before seeding.
     await resetDatabase();
     await clearData();
 

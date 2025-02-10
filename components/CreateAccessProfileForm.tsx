@@ -31,7 +31,6 @@ export default function CreateAccessProfileForm() {
         async function fetchTree() {
             const tree = await getModulesTree();
             setAvailableModules(tree);
-            // For creation, start with no modules.
             setSelectedModules([]);
             setPermissions({});
         }
@@ -45,7 +44,6 @@ export default function CreateAccessProfileForm() {
         }));
     };
 
-    // Add a module from availableModules that is not yet selected
     const handleAddModule = (id: number) => {
         const moduleToAdd = availableModules.find((m) => m.id === id);
         if (moduleToAdd && !selectedModules.find((m) => m.id === id)) {
@@ -57,7 +55,6 @@ export default function CreateAccessProfileForm() {
         }
     };
 
-    // Remove a module (or submodule) and its permissions.
     const handleRemoveModule = (id: number, isSubmodule = false, parentId?: number) => {
         if (isSubmodule && parentId) {
             setSelectedModules((prev) =>
@@ -84,14 +81,12 @@ export default function CreateAccessProfileForm() {
         router.push("/management/accessProfiles");
     }
 
-    // Options: available modules not added yet.
     const moduleOptions = availableModules.filter(
         (m) => !selectedModules.find((sm) => sm.id === m.id)
     );
 
     return (
         <form onSubmit={handleSubmit} className="max-w-md mx-auto mt-8">
-            {/* AccessProfile Name Section */}
             <div className="mb-4">
                 <label htmlFor="name" className="block text-gray-700 text-sm font-bold mb-2">
                     AccessProfile Name:
@@ -104,7 +99,6 @@ export default function CreateAccessProfileForm() {
                     onChange={(e) => setName(e.target.value)}
                 />
             </div>
-            {/* Selected Modules Table */}
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -170,7 +164,6 @@ export default function CreateAccessProfileForm() {
                                     </TableCell>
                                 </TableRow>
                             ))}
-                            {/* Add Submodule dropdown for each module */}
                             <TableRow>
                                 <TableCell colSpan={6} className="pl-8">
                                     <select
@@ -233,7 +226,6 @@ export default function CreateAccessProfileForm() {
                     ))}
                 </TableBody>
             </Table>
-            {/* Add Module dropdown */}
             <div className="mt-4">
                 <select
                     defaultValue=""

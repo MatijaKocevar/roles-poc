@@ -18,7 +18,6 @@ type Permission = {
     module: Module;
 };
 
-// Renamed Role to AccessProfile
 type AccessProfile = {
     id: number;
     name: string;
@@ -29,7 +28,6 @@ export type ActiveAsset = {
     id: number;
     name: string;
     assetType: string;
-    // Updated key to reflect the renaming
     accessProfiles: AccessProfile[];
 };
 
@@ -76,10 +74,8 @@ export function ActiveUserProvider({ children }: { children: ReactNode }) {
     const hasPermission = (moduleSlug: string, permission: "VIEW" | "MANAGE"): boolean => {
         if (!user) return false;
 
-        // Super admin has all permissions
         if (user.role === "SUPER_ADMIN") return true;
 
-        // Check each asset's access profiles for the required permission
         return user.assets.some((asset) =>
             asset.accessProfiles.some((profile) =>
                 profile.permissions.some(

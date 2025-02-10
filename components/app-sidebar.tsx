@@ -39,7 +39,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         fetchModules();
     }, []);
 
-    // Add static always-present items
     const staticItems = useMemo(
         () => [
             {
@@ -69,7 +68,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         []
     );
 
-    // Set expanded module based on the current pathname.
     useEffect(() => {
         const allItems = [...staticItems, ...modules];
         for (const item of allItems) {
@@ -104,7 +102,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </SidebarMenu>
             </SidebarHeader>
             <SidebarContent>
-                {/* Add static always-present items */}
                 <SidebarGroup>
                     <SidebarMenu>
                         {staticItems.map((item) =>
@@ -154,7 +151,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     </SidebarMenu>
                 </SidebarGroup>
 
-                {/* Add dynamic modules */}
                 <SidebarGroup>
                     <SidebarMenu>
                         {displayedModules.map((item) =>
