@@ -33,7 +33,7 @@ export default async function RolesListPage() {
                         <TableHead>Name</TableHead>
                         <TableHead className="w-60">
                             <span className="mr-8">Actions</span>
-                            <Link href="/management/accessProfiles/create">
+                            <Link href="/management/access-profiles/create">
                                 <Button className="bg-blue-600">Create New Role</Button>
                             </Link>
                         </TableHead>
