@@ -1,6 +1,16 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { hasViewPermission } from "../../../../actions/hasViewPermissions";
-import GenericPage from "../../../../components/GenericPage";
+import { getAvailableAssets } from "../../../../actions/available-assets";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
 
@@ -10,5 +20,36 @@ export default async function PortfoliosPage() {
         redirect("/unauthorized");
     }
 
-    return <GenericPage pageName="assets-portfolios" />;
+    const { portfolios } = await getAvailableAssets();
+
+    if (portfolios.length === 0) {
+        return <p>No available portfolios.</p>;
+    }
+
+    return (
+        <div className="mx-auto p-4">
+            <Table>
+                <TableHeader className="sticky top-0 z-10 bg-background">
+                    <TableRow>
+                        <TableHead>ID</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Actions</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {portfolios.map((portfolio) => (
+                        <TableRow key={portfolio.id}>
+                            <TableCell>{portfolio.id}</TableCell>
+                            <TableCell>{portfolio.name}</TableCell>
+                            <TableCell>
+                                <Link href={`/assets/portfolios/${portfolio.id}`}>
+                                    <Button>View</Button>
+                                </Link>
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </div>
+    );
 }
