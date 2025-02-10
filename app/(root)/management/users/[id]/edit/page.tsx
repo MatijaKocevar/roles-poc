@@ -4,6 +4,7 @@ import { getUserById } from "../../../../../../actions/user";
 import UserInfoDisplay from "../../../../../../components/UserInfoDisplay";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function EditUserPage({
     params: asyncParams,

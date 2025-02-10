@@ -53,15 +53,26 @@ export async function getUserById(userId: number) {
     const [portfolios, groups, units] = await Promise.all([
         prisma.portfolio.findMany({
             where: { id: { in: portfolioIds } },
-            select: { id: true, name: true },
+            select: {
+                id: true,
+                name: true,
+            },
         }),
         prisma.regulationGroup.findMany({
             where: { id: { in: regGroupIds } },
-            select: { id: true, name: true },
+            select: {
+                id: true,
+                name: true,
+                portfolioId: true,
+            },
         }),
         prisma.regulationUnit.findMany({
             where: { id: { in: regUnitIds } },
-            select: { id: true, name: true },
+            select: {
+                id: true,
+                name: true,
+                groupId: true,
+            },
         }),
     ]);
 
@@ -116,9 +127,13 @@ export async function getUserById(userId: number) {
     const flatAssets = user.userAssets.map((ua) => {
         let assetDetails;
 
-        if (ua.assetType === AssetType.PORTFOLIO) assetDetails = portfolioMap[ua.assetId];
-        if (ua.assetType === AssetType.REGULATION_GROUP) assetDetails = groupMap[ua.assetId];
-        if (ua.assetType === AssetType.REGULATION_UNIT) assetDetails = unitMap[ua.assetId];
+        if (ua.assetType === AssetType.PORTFOLIO) {
+            assetDetails = portfolioMap[ua.assetId];
+        } else if (ua.assetType === AssetType.REGULATION_GROUP) {
+            assetDetails = groupMap[ua.assetId];
+        } else if (ua.assetType === AssetType.REGULATION_UNIT) {
+            assetDetails = unitMap[ua.assetId];
+        }
 
         const accessProfiles = userRolesMap.get(`${ua.assetType}:${ua.assetId}`) || [];
 
@@ -126,6 +141,8 @@ export async function getUserById(userId: number) {
             assetType: ua.assetType,
             id: assetDetails?.id,
             name: assetDetails?.name,
+            portfolioId: (assetDetails as any)?.portfolioId,
+            groupId: (assetDetails as any)?.groupId,
             accessProfiles,
         };
     });
