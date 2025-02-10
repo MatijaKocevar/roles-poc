@@ -163,7 +163,7 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                         setNewAsset({ ...newAsset, accessProfileId: parseInt(e.target.value) })
                     }
                 >
-                    <option value="">Select Role</option>
+                    <option value="">Select Access Profile</option>
                     {accessProfiles.map((accessProfile) => (
                         <option key={accessProfile.id} value={accessProfile.id}>
                             {accessProfile.name}
@@ -201,7 +201,7 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                                     </Button>
                                 </div>
                                 <div className="flex flex-row items-center gap-10">
-                                    <span className="font-semibold">Roles:</span>
+                                    <span className="font-semibold">Access Profiles:</span>
                                     <div className="flex gap-2">
                                         <select
                                             className="font-normal"
@@ -221,7 +221,7 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                                                 )
                                             }
                                         >
-                                            <option value="">Select Role</option>
+                                            <option value="">Select Access Profile</option>
                                             {accessProfiles.map((accessProfile) => (
                                                 <option
                                                     key={accessProfile.id}
@@ -239,7 +239,7 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                                                 )
                                             }
                                         >
-                                            Add Role
+                                            Add Access Profile
                                         </Button>
                                     </div>
                                 </div>
@@ -290,7 +290,7 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                                                         )
                                                     }
                                                 >
-                                                    Remove Role
+                                                    Remove Access Profile
                                                 </Button>
                                             </li>
                                         );
