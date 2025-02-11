@@ -10,8 +10,9 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { getAvailableAssets } from "../../../../actions/asset";
-
+import { getActiveUser } from "../../../../actions/user";
+import prisma from "@/lib/prisma";
+import { AssetType } from "@prisma/client";
 export const dynamic = "force-dynamic";
 
 export default async function RegulationUnitsPage() {
@@ -20,7 +21,17 @@ export default async function RegulationUnitsPage() {
         redirect("/unauthorized");
     }
 
-    const { regulationUnits } = await getAvailableAssets();
+    const data = await getActiveUser();
+    if (!data) {
+        redirect("/unauthorized");
+    }
+
+    const { activeUser } = data;
+
+    const regulationUnits =
+        activeUser.role === "SUPER_ADMIN"
+            ? await prisma.regulationUnit.findMany()
+            : activeUser.assets.filter((asset) => asset.assetType === AssetType.REGULATION_UNIT);
 
     if (regulationUnits.length === 0) {
         return <p>No available regulation units.</p>;

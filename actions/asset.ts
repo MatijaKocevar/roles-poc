@@ -170,7 +170,7 @@ export async function getAssetTypeById(assetId: number): Promise<AssetType | nul
     return null;
 }
 
-export async function getAvailableAssets() {
+export async function getAvailableAssetsByCompany() {
     const activeResponse = await getActiveUser();
 
     if (!activeResponse?.activeUser) {

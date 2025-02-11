@@ -10,7 +10,7 @@ import {
     removeRoleFromAsset,
     getAllRoles,
     getAssetTypeById,
-    getAvailableAssets,
+    getAvailableAssetsByCompany,
 } from "@/actions/asset";
 import { AssetType } from "@prisma/client";
 import { TreeDataItem, TreeView } from "./ui/tree-view";
@@ -71,7 +71,8 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
 
     useEffect(() => {
         const fetchData = async () => {
-            const { portfolios, regulationGroups, regulationUnits } = await getAvailableAssets();
+            const { portfolios, regulationGroups, regulationUnits } =
+                await getAvailableAssetsByCompany();
 
             setPortfolios(portfolios);
             setRegulationGroups(regulationGroups);

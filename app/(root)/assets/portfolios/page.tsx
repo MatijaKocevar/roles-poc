@@ -10,8 +10,9 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { getAvailableAssets } from "../../../../actions/asset";
-
+import { getActiveUser } from "../../../../actions/user";
+import { AssetType } from "@prisma/client";
+import prisma from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 
 export default async function PortfoliosPage() {
@@ -20,9 +21,19 @@ export default async function PortfoliosPage() {
         redirect("/unauthorized");
     }
 
-    const { portfolios } = await getAvailableAssets();
+    const data = await getActiveUser();
+    if (!data) {
+        redirect("/unauthorized");
+    }
 
-    if (portfolios.length === 0) {
+    const { activeUser } = data;
+
+    const portfolios =
+        activeUser.role === "SUPER_ADMIN"
+            ? await prisma.portfolio.findMany()
+            : activeUser.assets.filter((asset) => asset.assetType === AssetType.PORTFOLIO);
+
+    if (portfolios?.length === 0) {
         return <p>No available portfolios.</p>;
     }
 
@@ -37,7 +48,7 @@ export default async function PortfoliosPage() {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {portfolios.map((portfolio) => (
+                    {portfolios?.map((portfolio) => (
                         <TableRow key={portfolio.id}>
                             <TableCell>{portfolio.id}</TableCell>
                             <TableCell>{portfolio.name}</TableCell>
