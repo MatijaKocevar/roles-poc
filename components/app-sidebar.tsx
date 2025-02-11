@@ -15,7 +15,7 @@ import {
     SidebarMenuItem,
     SidebarRail,
 } from "@/components/ui/sidebar";
-import { getModules } from "../actions/modules";
+import { getModules } from "../actions/module";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const [modules, setModules] = useState<

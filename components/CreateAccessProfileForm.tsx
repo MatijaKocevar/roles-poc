@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getModulesTree } from "@/actions/modules";
+import { getModulesTree } from "@/actions/module";
 import {
     Table,
     TableBody,

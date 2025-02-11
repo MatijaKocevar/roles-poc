@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { hasViewPermission } from "../../../../actions/hasViewPermissions";
-import { getAvailableAssets } from "../../../../actions/available-assets";
 import {
     Table,
     TableBody,
@@ -11,6 +10,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { getAvailableAssets } from "../../../../actions/asset";
 
 export const dynamic = "force-dynamic";
 

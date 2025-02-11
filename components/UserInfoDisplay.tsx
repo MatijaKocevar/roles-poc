@@ -10,8 +10,8 @@ import {
     removeRoleFromAsset,
     getAllRoles,
     getAssetTypeById,
-} from "@/actions/user-assets";
-import { getAvailableAssets } from "@/actions/available-assets";
+    getAvailableAssets,
+} from "@/actions/asset";
 import { AssetType } from "@prisma/client";
 import { TreeDataItem, TreeView } from "./ui/tree-view";
 import { useRouter } from "next/navigation";
