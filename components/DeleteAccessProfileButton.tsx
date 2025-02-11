@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { deleteAccessProfile } from "../../../../actions/accessProfile";
-import { Button } from "../../../../components/ui/button";
+import { deleteAccessProfile } from "../actions/accessProfile";
+import { Button } from "./ui/button";
 
 interface DeleteAccessProfileButtonProps {
     accessProfileId: number;

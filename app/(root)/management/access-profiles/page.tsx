@@ -11,7 +11,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "../../../../components/ui/button";
-import DeleteRoleButton from "./DeleteAccessProfileButton";
+import DeleteRoleButton from "../../../../components/DeleteAccessProfileButton";
 
 export const dynamic = "force-dynamic";
 
