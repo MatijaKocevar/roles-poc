@@ -78,7 +78,7 @@ export default function CreateAccessProfileForm() {
         event.preventDefault();
         await createAccessProfile(name, permissions);
 
-        router.push("/management/accessProfiles");
+        router.push("/management/access-profiles");
     }
 
     const moduleOptions = availableModules.filter(

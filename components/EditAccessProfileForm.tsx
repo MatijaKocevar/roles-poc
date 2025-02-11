@@ -108,7 +108,7 @@ export default function EditAccessProfileForm({ accessProfileId }: EditAccessPro
 
         await updateAccessProfile(accessProfileId, name, permissions);
 
-        router.push("/management/accessProfiles");
+        router.push("/management/access-profiles");
     }
 
     const moduleOptions = availableModules.filter(
