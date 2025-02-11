@@ -227,7 +227,9 @@ export function AssetDetails({
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Module</TableHead>
+                                    <TableHead className="w-fit whitespace-nowrap">
+                                        Module
+                                    </TableHead>
                                     <TableHead>Permission</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -235,58 +237,56 @@ export function AssetDetails({
                                 {uniquePermissions.map((group) => (
                                     <React.Fragment key={group.module.moduleId}>
                                         <TableRow>
-                                            <TableCell>{group.module.moduleName}</TableCell>
+                                            <TableCell className="w-fit whitespace-nowrap">
+                                                {group.module.moduleName}
+                                            </TableCell>
                                             <TableCell>
-                                                <div className="flex flex-col gap-2">
+                                                <div className="flex flex-row gap-2 flex-wrap">
                                                     {group.module.permissions.map((p) => (
-                                                        <div
-                                                            key={p.type}
-                                                            className="flex flex-col gap-1"
-                                                        >
-                                                            {p.sourceProfiles.map((profile, i) => (
-                                                                <span
-                                                                    key={i}
-                                                                    className="text-xs flex items-center gap-1"
+                                                        <React.Fragment key={p.type}>
+                                                            {p.sourceProfiles.map((profile) => (
+                                                                <div
+                                                                    key={`${profile}-${p.type}`}
+                                                                    className="border rounded px-2 py-1 bg-gray-50"
                                                                 >
-                                                                    {profile}
-                                                                    <span>→</span>
-                                                                    <span
-                                                                        className={cn(
-                                                                            "px-2 py-0.5 rounded font-medium",
-                                                                            p.type === "MANAGE"
-                                                                                ? "bg-blue-100 text-blue-700"
-                                                                                : "bg-gray-100 text-gray-700"
-                                                                        )}
-                                                                    >
-                                                                        {p.type}
+                                                                    <span className="text-xs flex items-center gap-1">
+                                                                        {profile}
+                                                                        <span>→</span>
+                                                                        <span
+                                                                            className={cn(
+                                                                                "px-2 py-0.5 rounded font-medium",
+                                                                                p.type === "MANAGE"
+                                                                                    ? "bg-blue-100 text-blue-700"
+                                                                                    : "bg-gray-100 text-gray-700"
+                                                                            )}
+                                                                        >
+                                                                            {p.type}
+                                                                        </span>
                                                                     </span>
-                                                                </span>
+                                                                </div>
                                                             ))}
-                                                        </div>
+                                                        </React.Fragment>
                                                     ))}
                                                 </div>
                                             </TableCell>
                                         </TableRow>
                                         {group.submodules.map((submodule) => (
                                             <TableRow key={submodule.moduleId}>
-                                                <TableCell>
+                                                <TableCell className="w-fit whitespace-nowrap">
                                                     <div className="pl-6">
                                                         {submodule.moduleName}
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <div className="flex flex-col gap-2">
+                                                    <div className="flex flex-row gap-2 flex-wrap">
                                                         {submodule.permissions.map((p) => (
-                                                            <div
-                                                                key={p.type}
-                                                                className="flex flex-col gap-1"
-                                                            >
-                                                                {p.sourceProfiles.map(
-                                                                    (profile, i) => (
-                                                                        <span
-                                                                            key={i}
-                                                                            className="text-xs flex items-center gap-1"
-                                                                        >
+                                                            <React.Fragment key={p.type}>
+                                                                {p.sourceProfiles.map((profile) => (
+                                                                    <div
+                                                                        key={`${profile}-${p.type}`}
+                                                                        className="border rounded px-2 py-1 bg-gray-50"
+                                                                    >
+                                                                        <span className="text-xs flex items-center gap-1">
                                                                             {profile}
                                                                             <span>→</span>
                                                                             <span
@@ -301,9 +301,9 @@ export function AssetDetails({
                                                                                 {p.type}
                                                                             </span>
                                                                         </span>
-                                                                    )
-                                                                )}
-                                                            </div>
+                                                                    </div>
+                                                                ))}
+                                                            </React.Fragment>
                                                         ))}
                                                     </div>
                                                 </TableCell>
