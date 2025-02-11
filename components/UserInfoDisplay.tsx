@@ -94,6 +94,7 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                 newAsset.assetId,
                 newAsset.assetType
             );
+
             setNewAsset({ assetId: 0, assetType: "", accessProfileId: 0 });
             router.refresh();
         }
@@ -159,18 +160,12 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
         }
     };
 
-    const handleAssetChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const assetId = parseInt(e.target.value);
-
-        setNewAsset((prev) => ({ ...prev, assetId: assetId }));
-
-        const assetType = await getAssetTypeById(assetId);
-
-        if (assetType) {
-            setNewAsset((prev) => ({ ...prev, assetType: assetType }));
-        } else {
-            setNewAsset((prev) => ({ ...prev, assetType: "" }));
-        }
+    const handleAssetChange = (assetId: number, assetType: AssetType) => {
+        setNewAsset((prev) => ({
+            ...prev,
+            assetId,
+            assetType,
+        }));
     };
 
     function handleRoleChange(assetId: number, assetType: AssetType, accessProfileId: number) {
@@ -183,6 +178,9 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
     const constructTreeData = (): TreeDataItem[] => {
         if (!user?.assets) return [];
 
+        const treeData: TreeDataItem[] = [];
+
+        // Get all assets by type
         const portfolios = user.assets.filter(
             (asset) => asset.assetType === "PORTFOLIO"
         ) as Asset[];
@@ -193,43 +191,81 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
             (asset) => asset.assetType === "REGULATION_UNIT"
         ) as Asset[];
 
-        const groupsByPortfolio = regGroups.reduce((acc, group) => {
-            if (group.portfolioId) {
-                if (!acc[group.portfolioId]) {
-                    acc[group.portfolioId] = [];
-                }
-                acc[group.portfolioId].push(group);
-            }
-            return acc;
-        }, {} as { [key: number]: Asset[] });
+        // Add portfolios and their children
+        portfolios.forEach((portfolio) => {
+            const portfolioNode: TreeDataItem = {
+                id: `portfolio-${portfolio.id}`,
+                name: portfolio.name,
+                onClick: () => setSelectedAsset(portfolio as SelectedAsset),
+                children: [],
+            };
 
-        const unitsByGroup = regUnits.reduce((acc, unit) => {
-            if (unit.groupId) {
-                if (!acc[unit.groupId]) {
-                    acc[unit.groupId] = [];
-                }
-                acc[unit.groupId].push(unit);
-            }
-            return acc;
-        }, {} as { [key: number]: Asset[] });
-
-        return portfolios.map((portfolio) => ({
-            id: `portfolio-${portfolio.id}`,
-            name: portfolio.name,
-            onClick: () => setSelectedAsset(portfolio as SelectedAsset),
-            children:
-                groupsByPortfolio[portfolio.id]?.map((group) => ({
+            // Add groups that belong to this portfolio
+            const portfolioGroups = regGroups.filter((group) => group.portfolioId === portfolio.id);
+            portfolioGroups.forEach((group) => {
+                const groupNode: TreeDataItem = {
                     id: `group-${group.id}`,
                     name: group.name,
                     onClick: () => setSelectedAsset(group as SelectedAsset),
-                    children:
-                        unitsByGroup[group.id]?.map((unit) => ({
-                            id: `unit-${unit.id}`,
-                            name: unit.name,
-                            onClick: () => setSelectedAsset(unit as SelectedAsset),
-                        })) || [],
-                })) || [],
-        }));
+                    children: [],
+                };
+
+                // Add units that belong to this group
+                const groupUnits = regUnits.filter((unit) => unit.groupId === group.id);
+                groupUnits.forEach((unit) => {
+                    groupNode.children?.push({
+                        id: `unit-${unit.id}`,
+                        name: unit.name,
+                        onClick: () => setSelectedAsset(unit as SelectedAsset),
+                    });
+                });
+
+                portfolioNode.children?.push(groupNode);
+            });
+
+            treeData.push(portfolioNode);
+        });
+
+        // Add standalone groups (groups not in any of user's portfolios)
+        const standaloneGroups = regGroups.filter(
+            (group) => !portfolios.some((portfolio) => portfolio.id === group.portfolioId)
+        );
+
+        standaloneGroups.forEach((group) => {
+            const groupNode: TreeDataItem = {
+                id: `group-${group.id}`,
+                name: group.name,
+                onClick: () => setSelectedAsset(group as SelectedAsset),
+                children: [],
+            };
+
+            // Add units that belong to this group
+            const groupUnits = regUnits.filter((unit) => unit.groupId === group.id);
+            groupUnits.forEach((unit) => {
+                groupNode.children?.push({
+                    id: `unit-${unit.id}`,
+                    name: unit.name,
+                    onClick: () => setSelectedAsset(unit as SelectedAsset),
+                });
+            });
+
+            treeData.push(groupNode);
+        });
+
+        // Add standalone units (units not in any of user's groups)
+        const standaloneUnits = regUnits.filter(
+            (unit) => !regGroups.some((group) => group.id === unit.groupId)
+        );
+
+        standaloneUnits.forEach((unit) => {
+            treeData.push({
+                id: `unit-${unit.id}`,
+                name: unit.name,
+                onClick: () => setSelectedAsset(unit as SelectedAsset),
+            });
+        });
+
+        return treeData;
     };
 
     return (

@@ -20,24 +20,127 @@ export async function addAssetToUser(userId: number, assetId: number, assetType:
             },
         });
 
+        if (assetType === AssetType.PORTFOLIO) {
+            const groups = await prisma.regulationGroup.findMany({
+                where: { portfolioId: assetId },
+                include: { units: true },
+            });
+
+            await prisma.userAsset.createMany({
+                data: groups.map((group) => ({
+                    userId: userId,
+                    assetId: group.id,
+                    assetType: AssetType.REGULATION_GROUP,
+                })),
+                skipDuplicates: true,
+            });
+
+            const units = groups.flatMap((group) => group.units);
+
+            await prisma.userAsset.createMany({
+                data: units.map((unit) => ({
+                    userId: userId,
+                    assetId: unit.id,
+                    assetType: AssetType.REGULATION_UNIT,
+                })),
+                skipDuplicates: true,
+            });
+        } else if (assetType === AssetType.REGULATION_GROUP) {
+            const units = await prisma.regulationUnit.findMany({
+                where: { groupId: assetId },
+            });
+
+            await prisma.userAsset.createMany({
+                data: units.map((unit) => ({
+                    userId: userId,
+                    assetId: unit.id,
+                    assetType: AssetType.REGULATION_UNIT,
+                })),
+                skipDuplicates: true,
+            });
+        }
+
         revalidatePath(`/`);
 
         return { success: true };
     } catch (error) {
         console.error("Error adding asset to user:", error);
-
         return { success: false, error: "Failed to add asset to user" };
     }
 }
 
 export async function removeAssetFromUser(userId: number, assetId: number, assetType: AssetType) {
     try {
-        await prisma.userAsset.deleteMany({
-            where: {
-                userId: userId,
-                assetId: assetId,
-                assetType: assetType,
-            },
+        const assetIdsToRemove: { id: number; type: AssetType }[] = [];
+
+        if (assetType === AssetType.PORTFOLIO) {
+            const groups = await prisma.regulationGroup.findMany({
+                where: { portfolioId: assetId },
+                include: { units: true },
+            });
+
+            assetIdsToRemove.push(
+                ...groups.map((group) => ({
+                    id: group.id,
+                    type: AssetType.REGULATION_GROUP,
+                }))
+            );
+
+            const units = groups.flatMap((group) => group.units);
+
+            assetIdsToRemove.push(
+                ...units.map((unit) => ({
+                    id: unit.id,
+                    type: AssetType.REGULATION_UNIT,
+                }))
+            );
+        } else if (assetType === AssetType.REGULATION_GROUP) {
+            const units = await prisma.regulationUnit.findMany({
+                where: { groupId: assetId },
+            });
+
+            assetIdsToRemove.push(
+                ...units.map((unit) => ({
+                    id: unit.id,
+                    type: AssetType.REGULATION_UNIT,
+                }))
+            );
+        }
+
+        await prisma.$transaction(async (tx) => {
+            for (const asset of assetIdsToRemove) {
+                await tx.userAccessProfile.deleteMany({
+                    where: {
+                        userId: userId,
+                        assetId: asset.id,
+                        assetType: asset.type,
+                    },
+                });
+
+                await tx.userAsset.deleteMany({
+                    where: {
+                        userId: userId,
+                        assetId: asset.id,
+                        assetType: asset.type,
+                    },
+                });
+            }
+
+            await tx.userAccessProfile.deleteMany({
+                where: {
+                    userId: userId,
+                    assetId: assetId,
+                    assetType: assetType,
+                },
+            });
+
+            await tx.userAsset.deleteMany({
+                where: {
+                    userId: userId,
+                    assetId: assetId,
+                    assetType: assetType,
+                },
+            });
         });
 
         revalidatePath(`/`);
@@ -65,6 +168,49 @@ export async function addRoleToAsset(
                 assetType,
             },
         });
+
+        if (assetType === AssetType.PORTFOLIO) {
+            const groups = await prisma.regulationGroup.findMany({
+                where: { portfolioId: assetId },
+                include: { units: true },
+            });
+
+            await prisma.userAccessProfile.createMany({
+                data: groups.map((group) => ({
+                    userId,
+                    accessProfileId,
+                    assetId: group.id,
+                    assetType: AssetType.REGULATION_GROUP,
+                })),
+                skipDuplicates: true,
+            });
+
+            const units = groups.flatMap((group) => group.units);
+
+            await prisma.userAccessProfile.createMany({
+                data: units.map((unit) => ({
+                    userId,
+                    accessProfileId,
+                    assetId: unit.id,
+                    assetType: AssetType.REGULATION_UNIT,
+                })),
+                skipDuplicates: true,
+            });
+        } else if (assetType === AssetType.REGULATION_GROUP) {
+            const units = await prisma.regulationUnit.findMany({
+                where: { groupId: assetId },
+            });
+
+            await prisma.userAccessProfile.createMany({
+                data: units.map((unit) => ({
+                    userId,
+                    accessProfileId,
+                    assetId: unit.id,
+                    assetType: AssetType.REGULATION_UNIT,
+                })),
+                skipDuplicates: true,
+            });
+        }
 
         revalidatePath(`/`);
 
@@ -154,18 +300,15 @@ export async function getAllRoles() {
 }
 
 export async function getAssetTypeById(assetId: number): Promise<AssetType | null> {
-    const portfolio = await prisma.portfolio.findUnique({ where: { id: assetId } });
+    const [portfolio, group, unit] = await Promise.all([
+        prisma.portfolio.findUnique({ where: { id: assetId } }),
+        prisma.regulationGroup.findUnique({ where: { id: assetId } }),
+        prisma.regulationUnit.findUnique({ where: { id: assetId } }),
+    ]);
+
+    if (unit) return AssetType.REGULATION_UNIT;
+    if (group) return AssetType.REGULATION_GROUP;
     if (portfolio) return AssetType.PORTFOLIO;
-
-    const regulationGroup = await prisma.regulationGroup.findUnique({
-        where: { id: assetId },
-    });
-
-    if (regulationGroup) return AssetType.REGULATION_GROUP;
-
-    const regulationUnit = await prisma.regulationUnit.findUnique({ where: { id: assetId } });
-
-    if (regulationUnit) return AssetType.REGULATION_UNIT;
 
     return null;
 }
