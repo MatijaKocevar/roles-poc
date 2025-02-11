@@ -48,6 +48,7 @@ model Module {
 enum PermissionType {
   VIEW
   MANAGE
+  CUSTOM
 }
 
 model Permission {

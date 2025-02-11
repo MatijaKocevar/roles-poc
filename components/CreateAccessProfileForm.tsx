@@ -14,6 +14,7 @@ import {
 import React from "react";
 import { Button } from "./ui/button";
 import { createAccessProfile } from "../actions/accessProfile";
+import { PermissionType } from "@prisma/client";
 
 export default function CreateAccessProfileForm() {
     const router = useRouter();
@@ -24,7 +25,7 @@ export default function CreateAccessProfileForm() {
     const [selectedModules, setSelectedModules] = useState<
         Array<{ id: number; title: string; submodules: Array<{ id: number; title: string }> }>
     >([]);
-    const [permissions, setPermissions] = useState<{ [moduleId: number]: "VIEW" | "MANAGE" }>({});
+    const [permissions, setPermissions] = useState<{ [moduleId: number]: PermissionType }>({});
     const [name, setName] = useState("");
 
     useEffect(() => {
@@ -37,11 +38,45 @@ export default function CreateAccessProfileForm() {
         fetchTree();
     }, []);
 
-    const handlePermissionChange = (moduleId: number, newPermission: "VIEW" | "MANAGE") => {
-        setPermissions((prev) => ({
-            ...prev,
-            [moduleId]: newPermission,
-        }));
+    const handlePermissionChange = (
+        moduleId: number,
+        newPermission: PermissionType,
+        isSubmodule = false,
+        parentId?: number
+    ) => {
+        if (isSubmodule && parentId) {
+            setPermissions((prev) => {
+                const newPermissions = { ...prev, [moduleId]: newPermission };
+                const parentModule = selectedModules.find((m) => m.id === parentId);
+
+                if (parentModule) {
+                    const allSubPermissions = parentModule.submodules.map(
+                        (sub) => newPermissions[sub.id]
+                    );
+
+                    if (allSubPermissions.every((perm) => perm === newPermission)) {
+                        newPermissions[parentId] = newPermission;
+                    } else {
+                        newPermissions[parentId] = "CUSTOM";
+                    }
+                }
+
+                return newPermissions;
+            });
+        } else {
+            setPermissions((prev) => {
+                const newPermissions = { ...prev, [moduleId]: newPermission };
+
+                const moduleItem = selectedModules.find((m) => m.id === moduleId);
+                if (moduleItem) {
+                    moduleItem.submodules.forEach((sub) => {
+                        newPermissions[sub.id] = newPermission;
+                    });
+                }
+
+                return newPermissions;
+            });
+        }
     };
 
     const handleAddModule = (id: number) => {
@@ -118,12 +153,17 @@ export default function CreateAccessProfileForm() {
                                         onChange={(e) =>
                                             handlePermissionChange(
                                                 module.id,
-                                                e.target.value as "VIEW" | "MANAGE"
+                                                e.target.value as PermissionType
                                             )
                                         }
                                     >
                                         <option value="VIEW">VIEW</option>
                                         <option value="MANAGE">MANAGE</option>
+                                        {permissions[module.id] === "CUSTOM" && (
+                                            <option value="CUSTOM" disabled>
+                                                CUSTOM
+                                            </option>
+                                        )}
                                     </select>
                                 </TableCell>
                                 <TableCell className="text-center">
@@ -144,7 +184,9 @@ export default function CreateAccessProfileForm() {
                                             onChange={(e) =>
                                                 handlePermissionChange(
                                                     sub.id,
-                                                    e.target.value as "VIEW" | "MANAGE"
+                                                    e.target.value as PermissionType,
+                                                    true,
+                                                    module.id
                                                 )
                                             }
                                         >

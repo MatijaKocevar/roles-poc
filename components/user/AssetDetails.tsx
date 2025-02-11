@@ -4,11 +4,13 @@ import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AssetType } from "@prisma/client";
 import { useState, useMemo } from "react";
+import React from "react";
 
 interface Permission {
     module: {
         id: number;
         name: string;
+        parentId?: number | null;
     };
     permission: "VIEW" | "MANAGE";
 }
@@ -45,7 +47,9 @@ export function AssetDetails({
         const permissionsMap = new Map<
             string,
             {
+                moduleId: number;
                 moduleName: string;
+                parentId?: number | null;
                 permissions: {
                     type: "VIEW" | "MANAGE";
                     sourceProfiles: string[];
@@ -58,7 +62,9 @@ export function AssetDetails({
                 const key = `${perm.module.id}`;
                 if (!permissionsMap.has(key)) {
                     permissionsMap.set(key, {
+                        moduleId: perm.module.id,
                         moduleName: perm.module.name,
+                        parentId: perm.module.parentId,
                         permissions: [
                             {
                                 type: perm.permission,
@@ -86,7 +92,48 @@ export function AssetDetails({
             });
         });
 
-        return permissionsMap;
+        const groupedPermissions: Array<{
+            module: {
+                moduleId: number;
+                moduleName: string;
+                permissions: { type: "VIEW" | "MANAGE"; sourceProfiles: string[] }[];
+            };
+            submodules: Array<{
+                moduleId: number;
+                moduleName: string;
+                permissions: { type: "VIEW" | "MANAGE"; sourceProfiles: string[] }[];
+            }>;
+        }> = [];
+
+        Array.from(permissionsMap.values())
+            .filter((module) => !module.parentId)
+            .forEach((parentModule) => {
+                groupedPermissions.push({
+                    module: {
+                        moduleId: parentModule.moduleId,
+                        moduleName: parentModule.moduleName,
+                        permissions: parentModule.permissions,
+                    },
+                    submodules: [],
+                });
+            });
+
+        Array.from(permissionsMap.values())
+            .filter((module) => module.parentId)
+            .forEach((submodule) => {
+                const parentGroup = groupedPermissions.find(
+                    (group) => group.module.moduleId === submodule.parentId
+                );
+                if (parentGroup) {
+                    parentGroup.submodules.push({
+                        moduleId: submodule.moduleId,
+                        moduleName: submodule.moduleName,
+                        permissions: submodule.permissions,
+                    });
+                }
+            });
+
+        return groupedPermissions;
     }, [selectedAsset.accessProfiles]);
 
     return (
@@ -185,37 +232,84 @@ export function AssetDetails({
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {Array.from(uniquePermissions.values()).map((perm, index) => (
-                                    <TableRow key={index}>
-                                        <TableCell>{perm.moduleName}</TableCell>
-                                        <TableCell>
-                                            <div className="flex flex-col gap-1">
-                                                {perm.permissions.map((p) => (
-                                                    <div
-                                                        key={p.type}
-                                                        className="flex flex-wrap gap-1"
-                                                    >
-                                                        {p.sourceProfiles.map((profile, i) => (
-                                                            <span key={i} className="text-xs">
-                                                                {profile}
-                                                                <span className="ml-1">→</span>
+                                {uniquePermissions.map((group) => (
+                                    <React.Fragment key={group.module.moduleId}>
+                                        <TableRow>
+                                            <TableCell>{group.module.moduleName}</TableCell>
+                                            <TableCell>
+                                                <div className="flex flex-col gap-2">
+                                                    {group.module.permissions.map((p) => (
+                                                        <div
+                                                            key={p.type}
+                                                            className="flex flex-col gap-1"
+                                                        >
+                                                            {p.sourceProfiles.map((profile, i) => (
                                                                 <span
-                                                                    className={cn(
-                                                                        "ml-1 px-2 py-0.5 rounded font-medium",
-                                                                        p.type === "MANAGE"
-                                                                            ? "bg-blue-100 text-blue-700"
-                                                                            : "bg-gray-100 text-gray-700"
-                                                                    )}
+                                                                    key={i}
+                                                                    className="text-xs flex items-center gap-1"
                                                                 >
-                                                                    {p.type}
+                                                                    {profile}
+                                                                    <span>→</span>
+                                                                    <span
+                                                                        className={cn(
+                                                                            "px-2 py-0.5 rounded font-medium",
+                                                                            p.type === "MANAGE"
+                                                                                ? "bg-blue-100 text-blue-700"
+                                                                                : "bg-gray-100 text-gray-700"
+                                                                        )}
+                                                                    >
+                                                                        {p.type}
+                                                                    </span>
                                                                 </span>
-                                                            </span>
+                                                            ))}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                        {group.submodules.map((submodule) => (
+                                            <TableRow key={submodule.moduleId}>
+                                                <TableCell>
+                                                    <div className="pl-6">
+                                                        {submodule.moduleName}
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex flex-col gap-2">
+                                                        {submodule.permissions.map((p) => (
+                                                            <div
+                                                                key={p.type}
+                                                                className="flex flex-col gap-1"
+                                                            >
+                                                                {p.sourceProfiles.map(
+                                                                    (profile, i) => (
+                                                                        <span
+                                                                            key={i}
+                                                                            className="text-xs flex items-center gap-1"
+                                                                        >
+                                                                            {profile}
+                                                                            <span>→</span>
+                                                                            <span
+                                                                                className={cn(
+                                                                                    "px-2 py-0.5 rounded font-medium",
+                                                                                    p.type ===
+                                                                                        "MANAGE"
+                                                                                        ? "bg-blue-100 text-blue-700"
+                                                                                        : "bg-gray-100 text-gray-700"
+                                                                                )}
+                                                                            >
+                                                                                {p.type}
+                                                                            </span>
+                                                                        </span>
+                                                                    )
+                                                                )}
+                                                            </div>
                                                         ))}
                                                     </div>
-                                                ))}
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </React.Fragment>
                                 ))}
                             </TableBody>
                         </Table>

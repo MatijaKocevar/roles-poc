@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { PermissionType } from "@prisma/client";
 
 export async function getAccessProfile(accessProfileId: string) {
     return await prisma.accessProfile.findUnique({
@@ -11,7 +12,7 @@ export async function getAccessProfile(accessProfileId: string) {
 
 export async function createAccessProfile(
     name: string,
-    permissions: { [moduleId: number]: "VIEW" | "MANAGE" }
+    permissions: { [moduleId: number]: PermissionType }
 ) {
     try {
         const accessProfile = await prisma.accessProfile.create({
@@ -41,7 +42,7 @@ export async function createAccessProfile(
 export async function updateAccessProfile(
     id: string,
     name: string,
-    permissions: { [moduleId: number]: "VIEW" | "MANAGE" }
+    permissions: { [moduleId: number]: PermissionType }
 ) {
     try {
         const updatedAccessProfile = await prisma.accessProfile.update({
@@ -78,7 +79,7 @@ export async function getPermissionsForAccessProfile(accessProfileId: string) {
         where: { accessProfileId: parseInt(accessProfileId) },
     });
 
-    const mapping: { [moduleId: number]: "VIEW" | "MANAGE" } = {};
+    const mapping: { [moduleId: number]: PermissionType } = {};
 
     permissions.forEach((perm) => {
         mapping[perm.moduleId] = perm.permission;
