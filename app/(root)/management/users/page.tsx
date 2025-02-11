@@ -15,6 +15,23 @@ import { getUsersList } from "../../../../actions/user";
 
 export const dynamic = "force-dynamic";
 
+function formatUserRole(role: string): string {
+    switch (role) {
+        case "SUPER_ADMIN":
+            return "Super Admin";
+        case "COMPANY_MANAGER":
+            return "Company Manager";
+        case "PORTFOLIO_MANAGER":
+            return "Portfolio Manager";
+        case "REG_GROUP_MANAGER":
+            return "Regulation Group Manager";
+        case "UNIT_MANAGER":
+            return "Unit Manager";
+        default:
+            return "N/A";
+    }
+}
+
 export default async function UsersPage() {
     const canView = await hasViewPermission("management-users");
 
@@ -69,21 +86,4 @@ export default async function UsersPage() {
             </Table>
         </div>
     );
-}
-
-function formatUserRole(role: string): string {
-    switch (role) {
-        case "SUPER_ADMIN":
-            return "Super Admin";
-        case "COMPANY_MANAGER":
-            return "Company Manager";
-        case "PORTFOLIO_MANAGER":
-            return "Portfolio Manager";
-        case "REG_GROUP_MANAGER":
-            return "Regulation Group Manager";
-        case "UNIT_MANAGER":
-            return "Unit Manager";
-        default:
-            return "N/A";
-    }
 }

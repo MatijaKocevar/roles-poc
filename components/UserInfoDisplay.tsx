@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import { User } from "../app/active-user-context";
 import {
@@ -13,10 +12,14 @@ import {
     getAssetTypeById,
 } from "@/actions/user-assets";
 import { getAvailableAssets } from "@/actions/available-assets";
-import { Button } from "./ui/button";
 import { AssetType } from "@prisma/client";
 import { TreeDataItem, TreeView } from "./ui/tree-view";
 import { useRouter } from "next/navigation";
+
+import { UserHeader } from "./user/UserHeader";
+import { AssetSelector } from "./user/AssetSelector";
+import { AssetDetails } from "./user/AssetDetails";
+import { getUserById } from "../actions/user";
 
 interface UserInfoDisplayProps {
     user: User | undefined;
@@ -61,7 +64,6 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
     const [accessProfiles, setRoles] = useState<RoleOption[]>([]);
     const [selectedRoles, setSelectedRoles] = useState<{ [assetKey: string]: number }>({});
     const [selectedAsset, setSelectedAsset] = useState<SelectedAsset | null>(null);
-    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     function assetKeyString(assetId: number, assetType: AssetType) {
         return `${assetType}-${assetId}`;
@@ -76,16 +78,11 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
             setRegulationUnits(regulationUnits);
 
             const accessProfilesData = await getAllRoles();
-
             setRoles(accessProfilesData);
         };
 
         fetchData();
-    }, [refreshTrigger]);
-
-    const refreshUserData = () => {
-        setRefreshTrigger((prev) => prev + 1);
-    };
+    }, []);
 
     const handleAddAsset = async () => {
         if (user && newAsset.assetId && newAsset.assetType && newAsset.accessProfileId) {
@@ -115,21 +112,28 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
             const selectedRole = selectedRoles[currentKey];
 
             if (selectedRole) {
+                const newProfile = accessProfiles.find((profile) => profile.id === selectedRole);
+                if (selectedAsset && newProfile) {
+                    setSelectedAsset({
+                        ...selectedAsset,
+                        accessProfiles: [...selectedAsset.accessProfiles, newProfile],
+                    });
+                }
+
                 await addRoleToAsset(user.id, selectedRole, assetId, assetType);
-                router.refresh();
                 setSelectedRoles((prev) => ({ ...prev, [currentKey]: 0 }));
 
-                if (selectedAsset && selectedAsset.id === assetId) {
-                    const newProfile = accessProfiles.find(
-                        (profile) => profile.id === selectedRole
+                const userData = await getUserById(user.id);
+                if (userData?.user.assets) {
+                    const freshAsset = userData.user.assets.find(
+                        (asset) => asset.id === assetId && asset.assetType === assetType
                     );
-                    if (newProfile) {
-                        setSelectedAsset({
-                            ...selectedAsset,
-                            accessProfiles: [...selectedAsset.accessProfiles, newProfile],
-                        });
+                    if (freshAsset) {
+                        setSelectedAsset(freshAsset as SelectedAsset);
                     }
                 }
+
+                router.refresh();
             }
         }
     };
@@ -178,7 +182,6 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
     const constructTreeData = (): TreeDataItem[] => {
         if (!user?.assets) return [];
 
-        // First, organize assets by type
         const portfolios = user.assets.filter(
             (asset) => asset.assetType === "PORTFOLIO"
         ) as Asset[];
@@ -189,7 +192,6 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
             (asset) => asset.assetType === "REGULATION_UNIT"
         ) as Asset[];
 
-        // Create a map of portfolioId -> groups for faster lookup
         const groupsByPortfolio = regGroups.reduce((acc, group) => {
             if (group.portfolioId) {
                 if (!acc[group.portfolioId]) {
@@ -200,7 +202,6 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
             return acc;
         }, {} as { [key: number]: Asset[] });
 
-        // Create a map of groupId -> units for faster lookup
         const unitsByGroup = regUnits.reduce((acc, unit) => {
             if (unit.groupId) {
                 if (!acc[unit.groupId]) {
@@ -211,159 +212,44 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
             return acc;
         }, {} as { [key: number]: Asset[] });
 
-        // Build the tree structure
         return portfolios.map((portfolio) => ({
             id: `portfolio-${portfolio.id}`,
             name: portfolio.name,
-            onClick: () => setSelectedAsset(portfolio),
+            onClick: () => setSelectedAsset(portfolio as SelectedAsset),
             children:
                 groupsByPortfolio[portfolio.id]?.map((group) => ({
                     id: `group-${group.id}`,
                     name: group.name,
-                    onClick: () => setSelectedAsset(group),
+                    onClick: () => setSelectedAsset(group as SelectedAsset),
                     children:
                         unitsByGroup[group.id]?.map((unit) => ({
                             id: `unit-${unit.id}`,
                             name: unit.name,
-                            onClick: () => setSelectedAsset(unit),
+                            onClick: () => setSelectedAsset(unit as SelectedAsset),
                         })) || [],
                 })) || [],
         }));
     };
 
-    const renderAssetDetails = () => {
-        if (!selectedAsset) return null;
-
-        return (
-            <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                    <h2 className="text-xl font-semibold">
-                        {selectedAsset.assetType}: {selectedAsset.name}
-                    </h2>
-                    <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleRemoveAsset(selectedAsset.id, selectedAsset.assetType)}
-                    >
-                        Remove Asset
-                    </Button>
-                </div>
-
-                <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                        <h3 className="font-medium">Access Profiles</h3>
-                        <div className="flex gap-2">
-                            <select
-                                className="h-8 rounded-md border border-input px-3"
-                                value={
-                                    selectedRoles[
-                                        assetKeyString(selectedAsset.id, selectedAsset.assetType)
-                                    ] || ""
-                                }
-                                onChange={(e) =>
-                                    handleRoleChange(
-                                        selectedAsset.id,
-                                        selectedAsset.assetType,
-                                        parseInt(e.target.value)
-                                    )
-                                }
-                            >
-                                <option value="">Select Access Profile</option>
-                                {accessProfiles.map((profile) => (
-                                    <option key={profile.id} value={profile.id}>
-                                        {profile.name}
-                                    </option>
-                                ))}
-                            </select>
-                            <Button
-                                size="sm"
-                                onClick={() =>
-                                    handleAddRole(selectedAsset.id, selectedAsset.assetType)
-                                }
-                            >
-                                Add
-                            </Button>
-                        </div>
-                    </div>
-
-                    <ul className="space-y-2">
-                        {selectedAsset.accessProfiles.map((profile) => (
-                            <li
-                                key={profile.id}
-                                className="flex items-center justify-between bg-accent/50 p-2 rounded"
-                            >
-                                <span>{profile.name}</span>
-                                <Button
-                                    variant="destructive"
-                                    size="sm"
-                                    onClick={() =>
-                                        handleRemoveRole(
-                                            selectedAsset.id,
-                                            selectedAsset.assetType,
-                                            profile.id
-                                        )
-                                    }
-                                >
-                                    Remove
-                                </Button>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            </div>
-        );
-    };
-
     return (
         <div className="p-4 space-y-4">
-            <div className="flex flex-col gap-1">
-                <div className="flex flex-row gap-2">
-                    <div className="font-bold text-xl text-gray-700">{user?.firstName}</div>
-                    <div className="font-bold text-xl text-gray-700">{user?.lastName}</div>
-                </div>
-                <div className="text-gray-700">{user?.email}</div>
-                {user?.company && <div className="text-gray-700">Company: {user.company.name}</div>}
-            </div>
+            <UserHeader
+                firstName={user?.firstName || ""}
+                lastName={user?.lastName || ""}
+                email={user?.email || ""}
+                companyName={user?.company?.name}
+            />
 
-            <div className="flex gap-2">
-                <select
-                    value={newAsset.assetId === 0 ? "" : newAsset.assetId}
-                    onChange={handleAssetChange}
-                    className="h-10 rounded-md border border-input px-3"
-                >
-                    <option value="">Select Asset</option>
-                    {portfolios.map((portfolio) => (
-                        <option key={portfolio.id} value={portfolio.id}>
-                            {portfolio.name} (Portfolio)
-                        </option>
-                    ))}
-                    {regulationGroups.map((group) => (
-                        <option key={group.id} value={group.id}>
-                            {group.name} (Regulation Group)
-                        </option>
-                    ))}
-                    {regulationUnits.map((unit) => (
-                        <option key={unit.id} value={unit.id}>
-                            {unit.name} (Regulation Unit)
-                        </option>
-                    ))}
-                </select>
-                <select
-                    value={newAsset.accessProfileId === 0 ? "" : newAsset.accessProfileId}
-                    onChange={(e) =>
-                        setNewAsset({ ...newAsset, accessProfileId: parseInt(e.target.value) })
-                    }
-                    className="h-10 rounded-md border border-input px-3"
-                >
-                    <option value="">Select Access Profile</option>
-                    {accessProfiles.map((accessProfile) => (
-                        <option key={accessProfile.id} value={accessProfile.id}>
-                            {accessProfile.name}
-                        </option>
-                    ))}
-                </select>
-                <Button onClick={handleAddAsset}>Add Asset</Button>
-            </div>
+            <AssetSelector
+                newAsset={newAsset}
+                portfolios={portfolios}
+                regulationGroups={regulationGroups}
+                regulationUnits={regulationUnits}
+                accessProfiles={accessProfiles}
+                onAssetChange={handleAssetChange}
+                onAccessProfileChange={(id) => setNewAsset({ ...newAsset, accessProfileId: id })}
+                onAddAsset={handleAddAsset}
+            />
 
             <div className="flex gap-4">
                 <div className="w-1/3 border rounded-lg">
@@ -371,7 +257,16 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                 </div>
                 <div className="w-2/3 border rounded-lg p-4">
                     {selectedAsset ? (
-                        renderAssetDetails()
+                        <AssetDetails
+                            selectedAsset={selectedAsset}
+                            onRemoveAsset={handleRemoveAsset}
+                            onAddRole={handleAddRole}
+                            onRemoveRole={handleRemoveRole}
+                            onRoleChange={handleRoleChange}
+                            selectedRoles={selectedRoles}
+                            accessProfiles={accessProfiles}
+                            assetKeyString={assetKeyString}
+                        />
                     ) : (
                         <div className="text-center text-gray-500">
                             Select an asset to view details
