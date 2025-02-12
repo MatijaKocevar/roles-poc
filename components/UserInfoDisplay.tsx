@@ -180,7 +180,6 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
 
         const treeData: TreeDataItem[] = [];
 
-        // Get all assets by type
         const portfolios = user.assets.filter(
             (asset) => asset.assetType === "PORTFOLIO"
         ) as Asset[];
@@ -191,7 +190,6 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
             (asset) => asset.assetType === "REGULATION_UNIT"
         ) as Asset[];
 
-        // Add portfolios and their children
         portfolios.forEach((portfolio) => {
             const portfolioNode: TreeDataItem = {
                 id: `portfolio-${portfolio.id}`,
@@ -200,7 +198,6 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                 children: [],
             };
 
-            // Add groups that belong to this portfolio
             const portfolioGroups = regGroups.filter((group) => group.portfolioId === portfolio.id);
             portfolioGroups.forEach((group) => {
                 const groupNode: TreeDataItem = {
@@ -210,7 +207,6 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                     children: [],
                 };
 
-                // Add units that belong to this group
                 const groupUnits = regUnits.filter((unit) => unit.groupId === group.id);
                 groupUnits.forEach((unit) => {
                     groupNode.children?.push({
@@ -226,7 +222,6 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
             treeData.push(portfolioNode);
         });
 
-        // Add standalone groups (groups not in any of user's portfolios)
         const standaloneGroups = regGroups.filter(
             (group) => !portfolios.some((portfolio) => portfolio.id === group.portfolioId)
         );
@@ -239,7 +234,6 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
                 children: [],
             };
 
-            // Add units that belong to this group
             const groupUnits = regUnits.filter((unit) => unit.groupId === group.id);
             groupUnits.forEach((unit) => {
                 groupNode.children?.push({
@@ -252,7 +246,6 @@ export default function UserInfoDisplay({ user }: UserInfoDisplayProps) {
             treeData.push(groupNode);
         });
 
-        // Add standalone units (units not in any of user's groups)
         const standaloneUnits = regUnits.filter(
             (unit) => !regGroups.some((group) => group.id === unit.groupId)
         );

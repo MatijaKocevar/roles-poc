@@ -146,7 +146,6 @@ export async function getUserById(userId: number) {
 
     const assetHierarchy = new Map<string, { parentType: AssetType; parentId: number }>();
 
-    // Map groups to portfolios
     groups.forEach((group) => {
         if (group.portfolioId) {
             assetHierarchy.set(`${AssetType.REGULATION_GROUP}:${group.id}`, {
@@ -156,7 +155,6 @@ export async function getUserById(userId: number) {
         }
     });
 
-    // Map units to groups
     units.forEach((unit) => {
         if (unit.groupId) {
             assetHierarchy.set(`${AssetType.REGULATION_UNIT}:${unit.id}`, {
@@ -175,7 +173,6 @@ export async function getUserById(userId: number) {
 
         if (!parent) return [];
 
-        // Get direct parent's profiles
         const parentProfiles = userAssetRoles
             .filter((r) => r.assetType === parent.parentType && r.assetId === parent.parentId)
             .map((r) => ({
@@ -207,7 +204,6 @@ export async function getUserById(userId: number) {
                 },
             }));
 
-        // Recursively get grandparent's profiles
         const grandparentProfiles = getInheritedAccessProfiles(parent.parentType, parent.parentId);
 
         return [...parentProfiles, ...grandparentProfiles];
@@ -226,7 +222,6 @@ export async function getUserById(userId: number) {
             assetDetails = unitMap[ua.assetId];
         }
 
-        // Get direct access profiles
         const directAccessProfiles = (userRolesMap.get(`${ua.assetType}:${ua.assetId}`) || []).map(
             (p) => ({
                 id: p.id,
@@ -236,7 +231,6 @@ export async function getUserById(userId: number) {
             })
         );
 
-        // Get inherited access profiles
         const inheritedAccessProfiles = getInheritedAccessProfiles(ua.assetType, ua.assetId);
 
         return {
@@ -366,7 +360,6 @@ export async function getActiveUser() {
 
     const assetHierarchy = new Map<string, { parentType: AssetType; parentId: number }>();
 
-    // Map groups to portfolios
     groups.forEach((group) => {
         if (group.portfolioId) {
             assetHierarchy.set(`${AssetType.REGULATION_GROUP}:${group.id}`, {
@@ -376,7 +369,6 @@ export async function getActiveUser() {
         }
     });
 
-    // Map units to groups
     units.forEach((unit) => {
         if (unit.groupId) {
             assetHierarchy.set(`${AssetType.REGULATION_UNIT}:${unit.id}`, {
@@ -395,7 +387,6 @@ export async function getActiveUser() {
 
         if (!parent) return [];
 
-        // Get direct parent's profiles
         const parentProfiles = userAssetRoles
             .filter((r) => r.assetType === parent.parentType && r.assetId === parent.parentId)
             .map((r) => ({
@@ -427,7 +418,6 @@ export async function getActiveUser() {
                 },
             }));
 
-        // Recursively get grandparent's profiles
         const grandparentProfiles = getInheritedAccessProfiles(parent.parentType, parent.parentId);
 
         return [...parentProfiles, ...grandparentProfiles];
@@ -446,7 +436,6 @@ export async function getActiveUser() {
             assetDetails = unitMap[ua.assetId];
         }
 
-        // Get direct access profiles
         const directAccessProfiles = (userRolesMap.get(`${ua.assetType}:${ua.assetId}`) || []).map(
             (p) => ({
                 id: p.id,
@@ -456,7 +445,6 @@ export async function getActiveUser() {
             })
         );
 
-        // Get inherited access profiles
         const inheritedAccessProfiles = getInheritedAccessProfiles(ua.assetType, ua.assetId);
 
         return {
