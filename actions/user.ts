@@ -1,27 +1,47 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { AssetType } from "@prisma/client";
+import { AssetType, PermissionType } from "@prisma/client";
+
+export interface AccessProfileWithSource {
+    id: number;
+    name: string;
+    source?: {
+        type: AssetType;
+        id: number;
+        name: string;
+    };
+    permissions: {
+        id: number;
+        permission: PermissionType;
+        module: {
+            id: number;
+            name: string;
+            parentId: number | null;
+            slug: string;
+        };
+    }[];
+}
 
 export interface FlatAsset {
     assetType: AssetType;
     id: number | null;
     name: string | null;
-    accessProfiles: {
-        id: number;
-        name: string;
-        permissions: {
-            id: number;
-            accessProfileId: number;
-            permission: "VIEW" | "MANAGE";
-            module: {
-                id: number;
-                name: string;
-                parentId: number | null;
-                slug: string;
-            };
-        }[];
-    }[];
+    portfolioId?: number;
+    groupId?: number;
+    accessProfiles: AccessProfileWithSource[];
+}
+
+interface GroupDetails {
+    id: number;
+    name: string;
+    portfolioId: number;
+}
+
+interface UnitDetails {
+    id: number;
+    name: string;
+    groupId: number;
 }
 
 export async function getUserById(userId: number) {
@@ -124,8 +144,79 @@ export async function getUserById(userId: number) {
         userRolesMap.get(key)?.push(r.accessProfile);
     }
 
+    const assetHierarchy = new Map<string, { parentType: AssetType; parentId: number }>();
+
+    // Map groups to portfolios
+    groups.forEach((group) => {
+        if (group.portfolioId) {
+            assetHierarchy.set(`${AssetType.REGULATION_GROUP}:${group.id}`, {
+                parentType: AssetType.PORTFOLIO,
+                parentId: group.portfolioId,
+            });
+        }
+    });
+
+    // Map units to groups
+    units.forEach((unit) => {
+        if (unit.groupId) {
+            assetHierarchy.set(`${AssetType.REGULATION_UNIT}:${unit.id}`, {
+                parentType: AssetType.REGULATION_GROUP,
+                parentId: unit.groupId,
+            });
+        }
+    });
+
+    const getInheritedAccessProfiles = (
+        assetType: AssetType,
+        assetId: number
+    ): AccessProfileWithSource[] => {
+        const key = `${assetType}:${assetId}`;
+        const parent = assetHierarchy.get(key);
+
+        if (!parent) return [];
+
+        // Get direct parent's profiles
+        const parentProfiles = userAssetRoles
+            .filter((r) => r.assetType === parent.parentType && r.assetId === parent.parentId)
+            .map((r) => ({
+                id: r.accessProfile.id,
+                name: r.accessProfile.name,
+                permissions: r.accessProfile.permissions.map(
+                    (perm: {
+                        id: number;
+                        permission: PermissionType;
+                        module: {
+                            id: number;
+                            name: string;
+                            parentId: number | null;
+                            slug: string;
+                        };
+                    }) => ({
+                        id: perm.id,
+                        permission: perm.permission,
+                        module: perm.module,
+                    })
+                ),
+                source: {
+                    type: parent.parentType,
+                    id: parent.parentId,
+                    name:
+                        parent.parentType === AssetType.PORTFOLIO
+                            ? portfolioMap[parent.parentId]?.name
+                            : groupMap[parent.parentId]?.name,
+                },
+            }));
+
+        // Recursively get grandparent's profiles
+        const grandparentProfiles = getInheritedAccessProfiles(parent.parentType, parent.parentId);
+
+        return [...parentProfiles, ...grandparentProfiles];
+    };
+
     const flatAssets = user.userAssets.map((ua) => {
-        let assetDetails;
+        let assetDetails:
+            | { id: number; name: string; portfolioId?: number; groupId?: number }
+            | undefined;
 
         if (ua.assetType === AssetType.PORTFOLIO) {
             assetDetails = portfolioMap[ua.assetId];
@@ -135,15 +226,26 @@ export async function getUserById(userId: number) {
             assetDetails = unitMap[ua.assetId];
         }
 
-        const accessProfiles = userRolesMap.get(`${ua.assetType}:${ua.assetId}`) || [];
+        // Get direct access profiles
+        const directAccessProfiles = (userRolesMap.get(`${ua.assetType}:${ua.assetId}`) || []).map(
+            (p) => ({
+                id: p.id,
+                name: p.name,
+                permissions: p.permissions,
+                source: undefined,
+            })
+        );
+
+        // Get inherited access profiles
+        const inheritedAccessProfiles = getInheritedAccessProfiles(ua.assetType, ua.assetId);
 
         return {
             assetType: ua.assetType,
             id: assetDetails?.id,
             name: assetDetails?.name,
-            portfolioId: (assetDetails as any)?.portfolioId,
-            groupId: (assetDetails as any)?.groupId,
-            accessProfiles,
+            portfolioId: assetDetails?.portfolioId,
+            groupId: assetDetails?.groupId,
+            accessProfiles: [...directAccessProfiles, ...inheritedAccessProfiles],
         };
     });
 
@@ -192,15 +294,26 @@ export async function getActiveUser() {
     const [portfolios, groups, units] = await Promise.all([
         prisma.portfolio.findMany({
             where: { id: { in: portfolioIds } },
-            select: { id: true, name: true },
+            select: {
+                id: true,
+                name: true,
+            },
         }),
         prisma.regulationGroup.findMany({
             where: { id: { in: regGroupIds } },
-            select: { id: true, name: true },
+            select: {
+                id: true,
+                name: true,
+                portfolioId: true,
+            },
         }),
         prisma.regulationUnit.findMany({
             where: { id: { in: regUnitIds } },
-            select: { id: true, name: true },
+            select: {
+                id: true,
+                name: true,
+                groupId: true,
+            },
         }),
     ]);
 
@@ -251,19 +364,108 @@ export async function getActiveUser() {
         userRolesMap.get(key)?.push(r.accessProfile);
     }
 
+    const assetHierarchy = new Map<string, { parentType: AssetType; parentId: number }>();
+
+    // Map groups to portfolios
+    groups.forEach((group) => {
+        if (group.portfolioId) {
+            assetHierarchy.set(`${AssetType.REGULATION_GROUP}:${group.id}`, {
+                parentType: AssetType.PORTFOLIO,
+                parentId: group.portfolioId,
+            });
+        }
+    });
+
+    // Map units to groups
+    units.forEach((unit) => {
+        if (unit.groupId) {
+            assetHierarchy.set(`${AssetType.REGULATION_UNIT}:${unit.id}`, {
+                parentType: AssetType.REGULATION_GROUP,
+                parentId: unit.groupId,
+            });
+        }
+    });
+
+    const getInheritedAccessProfiles = (
+        assetType: AssetType,
+        assetId: number
+    ): AccessProfileWithSource[] => {
+        const key = `${assetType}:${assetId}`;
+        const parent = assetHierarchy.get(key);
+
+        if (!parent) return [];
+
+        // Get direct parent's profiles
+        const parentProfiles = userAssetRoles
+            .filter((r) => r.assetType === parent.parentType && r.assetId === parent.parentId)
+            .map((r) => ({
+                id: r.accessProfile.id,
+                name: r.accessProfile.name,
+                permissions: r.accessProfile.permissions.map(
+                    (perm: {
+                        id: number;
+                        permission: PermissionType;
+                        module: {
+                            id: number;
+                            name: string;
+                            parentId: number | null;
+                            slug: string;
+                        };
+                    }) => ({
+                        id: perm.id,
+                        permission: perm.permission,
+                        module: perm.module,
+                    })
+                ),
+                source: {
+                    type: parent.parentType,
+                    id: parent.parentId,
+                    name:
+                        parent.parentType === AssetType.PORTFOLIO
+                            ? portfolioMap[parent.parentId]?.name
+                            : groupMap[parent.parentId]?.name,
+                },
+            }));
+
+        // Recursively get grandparent's profiles
+        const grandparentProfiles = getInheritedAccessProfiles(parent.parentType, parent.parentId);
+
+        return [...parentProfiles, ...grandparentProfiles];
+    };
+
     const flatAssets = user.userAssets.map((ua) => {
-        let assetDetails;
+        let assetDetails:
+            | { id: number; name: string; portfolioId?: number; groupId?: number }
+            | undefined;
 
-        if (ua.assetType === AssetType.PORTFOLIO) assetDetails = portfolioMap[ua.assetId];
-        if (ua.assetType === AssetType.REGULATION_GROUP) assetDetails = groupMap[ua.assetId];
-        if (ua.assetType === AssetType.REGULATION_UNIT) assetDetails = unitMap[ua.assetId];
+        if (ua.assetType === AssetType.PORTFOLIO) {
+            assetDetails = portfolioMap[ua.assetId];
+        } else if (ua.assetType === AssetType.REGULATION_GROUP) {
+            assetDetails = groupMap[ua.assetId];
+        } else if (ua.assetType === AssetType.REGULATION_UNIT) {
+            assetDetails = unitMap[ua.assetId];
+        }
 
-        const accessProfiles = userRolesMap.get(`${ua.assetType}:${ua.assetId}`) || [];
+        // Get direct access profiles
+        const directAccessProfiles = (userRolesMap.get(`${ua.assetType}:${ua.assetId}`) || []).map(
+            (p) => ({
+                id: p.id,
+                name: p.name,
+                permissions: p.permissions,
+                source: undefined,
+            })
+        );
+
+        // Get inherited access profiles
+        const inheritedAccessProfiles = getInheritedAccessProfiles(ua.assetType, ua.assetId);
+
         return {
             assetType: ua.assetType,
             id: assetDetails?.id,
             name: assetDetails?.name,
-            accessProfiles,
+            portfolioId: assetDetails?.portfolioId,
+            groupId: assetDetails?.groupId,
+            accessProfiles: [...directAccessProfiles, ...inheritedAccessProfiles],
         };
     });
 

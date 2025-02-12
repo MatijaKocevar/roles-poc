@@ -190,20 +190,30 @@ export function AssetDetails({
                                 key={profile.id}
                                 className="flex items-center justify-between bg-accent/50 p-2 rounded"
                             >
-                                <span>{profile.name}</span>
-                                <Button
-                                    variant="destructive"
-                                    size="sm"
-                                    onClick={() =>
-                                        onRemoveRole(
-                                            selectedAsset.id,
-                                            selectedAsset.assetType,
-                                            profile.id
-                                        )
-                                    }
-                                >
-                                    Remove
-                                </Button>
+                                <span>
+                                    {profile.name}
+                                    {profile.source && (
+                                        <span className="text-gray-500 text-sm ml-2">
+                                            (inherited from {profile.source.type.toLowerCase()}{" "}
+                                            {profile.source.name})
+                                        </span>
+                                    )}
+                                </span>
+                                {!profile.source && (
+                                    <Button
+                                        variant="destructive"
+                                        size="sm"
+                                        onClick={() =>
+                                            onRemoveRole(
+                                                selectedAsset.id,
+                                                selectedAsset.assetType,
+                                                profile.id
+                                            )
+                                        }
+                                    >
+                                        Remove
+                                    </Button>
+                                )}
                             </li>
                         ))}
                     </ul>

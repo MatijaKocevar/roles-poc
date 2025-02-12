@@ -169,55 +169,10 @@ export async function addRoleToAsset(
             },
         });
 
-        if (assetType === AssetType.PORTFOLIO) {
-            const groups = await prisma.regulationGroup.findMany({
-                where: { portfolioId: assetId },
-                include: { units: true },
-            });
-
-            await prisma.userAccessProfile.createMany({
-                data: groups.map((group) => ({
-                    userId,
-                    accessProfileId,
-                    assetId: group.id,
-                    assetType: AssetType.REGULATION_GROUP,
-                })),
-                skipDuplicates: true,
-            });
-
-            const units = groups.flatMap((group) => group.units);
-
-            await prisma.userAccessProfile.createMany({
-                data: units.map((unit) => ({
-                    userId,
-                    accessProfileId,
-                    assetId: unit.id,
-                    assetType: AssetType.REGULATION_UNIT,
-                })),
-                skipDuplicates: true,
-            });
-        } else if (assetType === AssetType.REGULATION_GROUP) {
-            const units = await prisma.regulationUnit.findMany({
-                where: { groupId: assetId },
-            });
-
-            await prisma.userAccessProfile.createMany({
-                data: units.map((unit) => ({
-                    userId,
-                    accessProfileId,
-                    assetId: unit.id,
-                    assetType: AssetType.REGULATION_UNIT,
-                })),
-                skipDuplicates: true,
-            });
-        }
-
         revalidatePath(`/`);
-
         return { success: true };
     } catch (error) {
         console.error("Error adding role to asset:", error);
-
         return { success: false, error: "Failed to add role to asset" };
     }
 }
