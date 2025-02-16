@@ -5,5 +5,5 @@ export default async function TradingAutobidderPage() {
     const assets = await getUserModuleAssets("trading-autobidder");
     if (!assets) return null;
 
-    return <AssetCards assets={assets} />;
+    return <AssetCards moduleId={assets.moduleId} assets={assets.assets} />;
 }

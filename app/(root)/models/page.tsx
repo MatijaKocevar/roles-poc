@@ -3,7 +3,8 @@ import { AssetCards } from "@/components/AssetCards";
 
 export default async function ModelsPage() {
     const assets = await getUserModuleAssets("models");
+
     if (!assets) return null;
 
-    return <AssetCards assets={assets} />;
+    return <AssetCards moduleId={assets.moduleId} assets={assets.assets} />;
 }

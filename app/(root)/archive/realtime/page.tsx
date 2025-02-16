@@ -5,5 +5,5 @@ export default async function ArchiveRealtimePage() {
     const assets = await getUserModuleAssets("archive-realtime");
     if (!assets) return null;
 
-    return <AssetCards assets={assets} />;
+    return <AssetCards moduleId={assets.moduleId} assets={assets.assets} />;
 }

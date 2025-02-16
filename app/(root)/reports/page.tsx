@@ -2,8 +2,8 @@ import { getUserModuleAssets } from "@/actions/user";
 import { AssetCards } from "@/components/AssetCards";
 
 export default async function ReportsPage() {
-    const assets = await getUserModuleAssets("reports");
-    if (!assets) return null;
+    const userAssets = await getUserModuleAssets("reports");
+    if (!userAssets) return null;
 
-    return <AssetCards assets={assets} />;
+    return <AssetCards moduleId={userAssets.moduleId} assets={userAssets.assets ?? []} />;
 }

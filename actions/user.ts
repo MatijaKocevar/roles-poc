@@ -588,18 +588,28 @@ export async function getUserModuleAssets(moduleSlug: string) {
     const userData = await getActiveUser();
     if (!userData?.activeUser) return null;
 
-    const accessData = await getUserAccess(userData.activeUser.assets, userData.activeUser.role);
+    const accessData = await getUserAccess(
+        userData.activeUser.assets || [],
+        userData.activeUser.role
+    );
 
     if (userData.activeUser.role === "SUPER_ADMIN") {
-        return await getAllAssets();
+        return {
+            moduleId: null,
+            assets: await getAllAssets(),
+        };
     }
 
     const mod = accessData.moduleAccess.find((m) => m.slug === moduleSlug);
-    if (!mod?.hasAccess) return null;
 
-    return accessData.assetAccess.filter((asset) =>
+    const filteredAssets = accessData.assetAccess.filter((asset) =>
         asset.accessProfiles.some((profile) =>
-            profile.modulePermissions.some((perm) => perm.moduleId === mod.id)
+            profile.modulePermissions.some((perm) => perm.moduleId === mod?.id)
         )
     );
+
+    return {
+        moduleId: mod?.id ?? null,
+        assets: filteredAssets,
+    };
 }

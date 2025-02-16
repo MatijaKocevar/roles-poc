@@ -5,5 +5,5 @@ export default async function ArchivePage() {
     const assets = await getUserModuleAssets("archive");
     if (!assets) return null;
 
-    return <AssetCards assets={assets} />;
+    return <AssetCards moduleId={assets.moduleId} assets={assets.assets} />;
 }

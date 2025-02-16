@@ -4,13 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 interface AssetCardsProps {
+    moduleId: number | null;
     assets: AssetAccess[];
 }
 
-export function AssetCards({ assets }: AssetCardsProps) {
-    const portfolios = assets.filter((asset) => asset.assetType === AssetType.PORTFOLIO);
-    const regGroups = assets.filter((asset) => asset.assetType === AssetType.REGULATION_GROUP);
-    const regUnits = assets.filter((asset) => asset.assetType === AssetType.REGULATION_UNIT);
+export function AssetCards({ assets, moduleId }: AssetCardsProps) {
+    const portfolios = assets?.filter((asset) => asset.assetType === AssetType.PORTFOLIO);
+    const regGroups = assets?.filter((asset) => asset.assetType === AssetType.REGULATION_GROUP);
+    const regUnits = assets?.filter((asset) => asset.assetType === AssetType.REGULATION_UNIT);
 
     const hasAccessToPortfolio = (portfolioId?: number) =>
         portfolioId ? portfolios.some((p) => p.id === portfolioId) : false;
@@ -27,7 +28,13 @@ export function AssetCards({ assets }: AssetCardsProps) {
                             <CardTitle className="flex items-center justify-between">
                                 <span>{portfolio.name}</span>
                                 <Badge>
-                                    {portfolio.accessProfiles.map((profile) => profile.name)}
+                                    {portfolio.accessProfiles.map((profile) => {
+                                        const modulePermission = profile.modulePermissions.find(
+                                            (perm) => perm.moduleId === moduleId
+                                        );
+
+                                        return modulePermission?.permission;
+                                    })}
                                 </Badge>
                             </CardTitle>
                         </CardHeader>
@@ -40,9 +47,14 @@ export function AssetCards({ assets }: AssetCardsProps) {
                                             <CardTitle className="flex items-center justify-between text-base">
                                                 <span>{group.name}</span>
                                                 <Badge variant="outline">
-                                                    {group.accessProfiles.map(
-                                                        (profile) => profile.name
-                                                    )}
+                                                    {group.accessProfiles.map((profile) => {
+                                                        const modulePermission =
+                                                            profile.modulePermissions.find(
+                                                                (perm) => perm.moduleId === moduleId
+                                                            );
+
+                                                        return modulePermission?.permission;
+                                                    })}
                                                 </Badge>
                                             </CardTitle>
                                         </CardHeader>
@@ -58,7 +70,16 @@ export function AssetCards({ assets }: AssetCardsProps) {
                                                                 </span>
                                                                 <Badge variant="secondary">
                                                                     {unit.accessProfiles.map(
-                                                                        (profile) => profile.name
+                                                                        (profile) => {
+                                                                            const modulePermission =
+                                                                                profile.modulePermissions.find(
+                                                                                    (perm) =>
+                                                                                        perm.moduleId ===
+                                                                                        moduleId
+                                                                                );
+
+                                                                            return modulePermission?.permission;
+                                                                        }
                                                                     )}
                                                                 </Badge>
                                                             </div>
@@ -80,7 +101,13 @@ export function AssetCards({ assets }: AssetCardsProps) {
                                 <CardTitle className="flex items-center justify-between">
                                     <span>{group.name}</span>
                                     <Badge>
-                                        {group.accessProfiles.map((profile) => profile.name)}
+                                        {group.accessProfiles.map((profile) => {
+                                            const modulePermission = profile.modulePermissions.find(
+                                                (perm) => perm.moduleId === moduleId
+                                            );
+
+                                            return modulePermission?.permission;
+                                        })}
                                     </Badge>
                                 </CardTitle>
                             </CardHeader>
@@ -93,9 +120,15 @@ export function AssetCards({ assets }: AssetCardsProps) {
                                                 <div className="flex items-center justify-between">
                                                     <span className="font-medium">{unit.name}</span>
                                                     <Badge variant="secondary">
-                                                        {unit.accessProfiles.map(
-                                                            (profile) => profile.name
-                                                        )}
+                                                        {unit.accessProfiles.map((profile) => {
+                                                            const modulePermission =
+                                                                profile.modulePermissions.find(
+                                                                    (perm) =>
+                                                                        perm.moduleId === moduleId
+                                                                );
+
+                                                            return modulePermission?.permission;
+                                                        })}
                                                     </Badge>
                                                 </div>
                                             </CardHeader>
@@ -113,7 +146,13 @@ export function AssetCards({ assets }: AssetCardsProps) {
                                 <CardTitle className="flex items-center justify-between">
                                     <span>{unit.name}</span>
                                     <Badge>
-                                        {unit.accessProfiles.map((profile) => profile.name)}
+                                        {unit.accessProfiles.map((profile) => {
+                                            const modulePermission = profile.modulePermissions.find(
+                                                (perm) => perm.moduleId === moduleId
+                                            );
+
+                                            return modulePermission?.permission;
+                                        })}
                                     </Badge>
                                 </CardTitle>
                             </CardHeader>

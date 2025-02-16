@@ -5,5 +5,5 @@ export default async function ModelsActivationPage() {
     const assets = await getUserModuleAssets("models-activation");
     if (!assets) return null;
 
-    return <AssetCards assets={assets} />;
+    return <AssetCards moduleId={assets.moduleId} assets={assets.assets} />;
 }
