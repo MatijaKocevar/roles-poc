@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar } from "@/components/Sidebar";
 import {
     Breadcrumb,
     BreadcrumbItem,

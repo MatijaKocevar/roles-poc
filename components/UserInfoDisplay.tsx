@@ -9,7 +9,6 @@ import {
     addRoleToAsset,
     removeRoleFromAsset,
     getAllRoles,
-    getAssetTypeById,
     getAvailableAssetsByCompany,
 } from "@/actions/asset";
 import { AssetType } from "@prisma/client";
@@ -46,8 +45,8 @@ interface Asset {
     id: number;
     name: string;
     assetType: AssetType;
-    portfolioId?: number; // For regulation groups
-    groupId?: number; // For regulation units
+    portfolioId?: number;
+    groupId?: number;
     accessProfiles: any[];
 }
 
