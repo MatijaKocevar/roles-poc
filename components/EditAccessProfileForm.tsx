@@ -127,15 +127,29 @@ export default function EditAccessProfileForm({ accessProfileId }: EditAccessPro
                         : m
                 )
             );
-        } else {
-            setSelectedModules((prev) => prev.filter((m) => m.id !== id));
-        }
 
-        setPermissions((prev) => {
-            const updated = { ...prev };
-            delete updated[id];
-            return updated;
-        });
+            setPermissions((prev) => {
+                const updated = { ...prev };
+                delete updated[id];
+                return updated;
+            });
+        } else {
+            const moduleToRemove = selectedModules.find((m) => m.id === id);
+            setSelectedModules((prev) => prev.filter((m) => m.id !== id));
+
+            setPermissions((prev) => {
+                const updated = { ...prev };
+                delete updated[id];
+
+                if (moduleToRemove) {
+                    moduleToRemove.submodules.forEach((sub) => {
+                        delete updated[sub.id];
+                    });
+                }
+
+                return updated;
+            });
+        }
     };
 
     async function handleSubmit(event: any) {

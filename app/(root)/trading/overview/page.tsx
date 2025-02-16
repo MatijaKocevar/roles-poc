@@ -1,13 +1,9 @@
-import GenericPage from "@/components/GenericPage";
-import { hasViewPermission } from "../../../../actions/hasViewPermissions";
-import { redirect } from "next/navigation";
+import { getUserModuleAssets } from "@/actions/user";
+import { AssetCards } from "@/components/AssetCards";
 
 export default async function TradingOverviewPage() {
-    const canView = await hasViewPermission("trading-overview");
+    const assets = await getUserModuleAssets("trading-overview");
+    if (!assets) return null;
 
-    if (!canView) {
-        redirect("/unauthorized");
-    }
-
-    return <GenericPage pageName="trading-overview" />;
+    return <AssetCards assets={assets} />;
 }

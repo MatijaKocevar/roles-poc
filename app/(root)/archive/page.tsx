@@ -1,13 +1,9 @@
-import GenericPage from "@/components/GenericPage";
-import { hasViewPermission } from "../../../actions/hasViewPermissions";
-import { redirect } from "next/navigation";
+import { getUserModuleAssets } from "@/actions/user";
+import { AssetCards } from "@/components/AssetCards";
 
 export default async function ArchivePage() {
-    const canView = await hasViewPermission("archive");
+    const assets = await getUserModuleAssets("archive");
+    if (!assets) return null;
 
-    if (!canView) {
-        redirect("/unauthorized");
-    }
-
-    return <GenericPage pageName="archive" />;
+    return <AssetCards assets={assets} />;
 }

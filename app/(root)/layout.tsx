@@ -18,6 +18,7 @@ import { useActiveUser } from "../active-user-context";
 export default function Page({ children }: Readonly<{ children: ReactNode }>) {
     const pathname = usePathname();
     const pathSegments = pathname?.split("/").filter((segment) => segment !== "");
+
     const { user } = useActiveUser();
 
     return (

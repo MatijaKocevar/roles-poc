@@ -4,11 +4,8 @@ import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { AssetType, UserRole } from "@prisma/client";
 import { getActiveUser } from "./user";
-
-interface AssetOption {
-    id: number;
-    name: string;
-}
+import { AssetOption } from "@/types/asset";
+import { FlatAsset, AssetAccess } from "@/types/user";
 
 export async function addAssetToUser(userId: number, assetId: number, assetType: AssetType) {
     try {
@@ -354,4 +351,52 @@ export async function getAvailableAssetsByCompany() {
     }
 
     return { portfolios, regulationGroups, regulationUnits };
+}
+
+export async function getAllAssets(): Promise<AssetAccess[]> {
+    const [portfolios, groups, units] = await Promise.all([
+        prisma.portfolio.findMany({
+            select: {
+                id: true,
+                name: true,
+            },
+        }),
+        prisma.regulationGroup.findMany({
+            select: {
+                id: true,
+                name: true,
+                portfolioId: true,
+            },
+        }),
+        prisma.regulationUnit.findMany({
+            select: {
+                id: true,
+                name: true,
+                groupId: true,
+            },
+        }),
+    ]);
+
+    return [
+        ...portfolios.map((p) => ({
+            assetType: AssetType.PORTFOLIO,
+            id: p.id,
+            name: p.name,
+            accessProfiles: [],
+        })),
+        ...groups.map((g) => ({
+            assetType: AssetType.REGULATION_GROUP,
+            id: g.id,
+            name: g.name,
+            portfolioId: g.portfolioId,
+            accessProfiles: [],
+        })),
+        ...units.map((u) => ({
+            assetType: AssetType.REGULATION_UNIT,
+            id: u.id,
+            name: u.name,
+            groupId: u.groupId,
+            accessProfiles: [],
+        })),
+    ];
 }

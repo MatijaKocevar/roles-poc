@@ -1,19 +1,13 @@
-import { getActiveUser } from "@/actions/user";
-import { getAllAssets } from "@/actions/asset";
+import { AssetAccess } from "@/types/user";
 import { AssetType } from "@prisma/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-export default async function AssetsPage() {
-    const data = await getActiveUser();
+interface AssetCardsProps {
+    assets: AssetAccess[];
+}
 
-    if (!data?.activeUser) {
-        return null;
-    }
-
-    const assets =
-        data.activeUser.role === "SUPER_ADMIN" ? await getAllAssets() : data.activeUser.assets;
-
+export function AssetCards({ assets }: AssetCardsProps) {
     const portfolios = assets.filter((asset) => asset.assetType === AssetType.PORTFOLIO);
     const regGroups = assets.filter((asset) => asset.assetType === AssetType.REGULATION_GROUP);
     const regUnits = assets.filter((asset) => asset.assetType === AssetType.REGULATION_UNIT);
@@ -26,7 +20,6 @@ export default async function AssetsPage() {
 
     return (
         <div className="container mx-auto p-6">
-            <h1 className="text-2xl font-bold mb-6">Your Assets</h1>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {portfolios.map((portfolio) => (
                     <Card key={portfolio.id} className="shadow-md">

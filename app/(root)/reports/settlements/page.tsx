@@ -1,13 +1,9 @@
-import GenericPage from "@/components/GenericPage";
-import { hasViewPermission } from "../../../../actions/hasViewPermissions";
-import { redirect } from "next/navigation";
+import { getUserModuleAssets } from "@/actions/user";
+import { AssetCards } from "@/components/AssetCards";
 
 export default async function ReportsSettlementsPage() {
-    const canView = await hasViewPermission("reports-settlements");
+    const assets = await getUserModuleAssets("reports-settlements");
+    if (!assets) return null;
 
-    if (!canView) {
-        redirect("/unauthorized");
-    }
-
-    return <GenericPage pageName="reports-settlements" />;
+    return <AssetCards assets={assets} />;
 }

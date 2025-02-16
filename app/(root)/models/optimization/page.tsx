@@ -1,13 +1,9 @@
-import GenericPage from "@/components/GenericPage";
-import { hasViewPermission } from "../../../../actions/hasViewPermissions";
-import { redirect } from "next/navigation";
+import { getUserModuleAssets } from "@/actions/user";
+import { AssetCards } from "@/components/AssetCards";
 
 export default async function ModelsOptimizationPage() {
-    const canView = await hasViewPermission("models-optimization");
+    const assets = await getUserModuleAssets("models-optimization");
+    if (!assets) return null;
 
-    if (!canView) {
-        redirect("/unauthorized");
-    }
-
-    return <GenericPage pageName="models-optimization" />;
+    return <AssetCards assets={assets} />;
 }

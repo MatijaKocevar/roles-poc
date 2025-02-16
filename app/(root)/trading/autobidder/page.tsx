@@ -1,13 +1,9 @@
-import GenericPage from "@/components/GenericPage";
-import { redirect } from "next/navigation";
-import { hasViewPermission } from "../../../../actions/hasViewPermissions";
+import { getUserModuleAssets } from "@/actions/user";
+import { AssetCards } from "@/components/AssetCards";
 
 export default async function TradingAutobidderPage() {
-    const canView = await hasViewPermission("trading-autobidder");
+    const assets = await getUserModuleAssets("trading-autobidder");
+    if (!assets) return null;
 
-    if (!canView) {
-        redirect("/unauthorized");
-    }
-
-    return <GenericPage pageName="trading-autobidder" />;
+    return <AssetCards assets={assets} />;
 }

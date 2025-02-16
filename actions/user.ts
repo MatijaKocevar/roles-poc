@@ -1,48 +1,9 @@
 "use server";
 
+import { getAllAssets } from "@/actions/asset";
 import prisma from "@/lib/prisma";
+import { AccessProfileWithSource, AssetAccess, FlatAsset, UserAccessData } from "@/types/user";
 import { AssetType, PermissionType } from "@prisma/client";
-
-export interface AccessProfileWithSource {
-    id: number;
-    name: string;
-    source?: {
-        type: AssetType;
-        id: number;
-        name: string;
-    };
-    permissions: {
-        id: number;
-        permission: PermissionType;
-        module: {
-            id: number;
-            name: string;
-            parentId: number | null;
-            slug: string;
-        };
-    }[];
-}
-
-export interface FlatAsset {
-    assetType: AssetType;
-    id: number | null;
-    name: string | null;
-    portfolioId?: number;
-    groupId?: number;
-    accessProfiles: AccessProfileWithSource[];
-}
-
-interface GroupDetails {
-    id: number;
-    name: string;
-    portfolioId: number;
-}
-
-interface UnitDetails {
-    id: number;
-    name: string;
-    groupId: number;
-}
 
 export async function getUserById(userId: number) {
     const user = await prisma.user.findUnique({
@@ -560,4 +521,85 @@ export async function getUsersList(activeUserId: number) {
     });
 
     return activeUser.role === "UNIT_MANAGER" ? users : users.filter((u) => u.id !== activeUser.id);
+}
+
+export async function getUserAccess(assets: FlatAsset[], role?: string): Promise<UserAccessData> {
+    const modules = await prisma.module.findMany();
+    const modulePermissions = new Map<number, PermissionType>();
+    const assetAccessMap = new Map<string, AssetAccess>();
+
+    assets.forEach((asset) => {
+        const assetKey = `${asset.assetType}:${asset.id}`;
+
+        if (!assetAccessMap.has(assetKey)) {
+            assetAccessMap.set(assetKey, {
+                assetType: asset.assetType,
+                id: asset.id!,
+                name: asset.name!,
+                portfolioId: asset.portfolioId,
+                groupId: asset.groupId,
+                accessProfiles: [],
+            });
+        }
+
+        const assetData = assetAccessMap.get(assetKey)!;
+
+        asset.accessProfiles.forEach((profile) => {
+            const modulePerms = profile.permissions.map((perm) => {
+                const currentPermission = modulePermissions.get(perm.module.id);
+                if (
+                    !currentPermission ||
+                    perm.permission === "MANAGE" ||
+                    (perm.permission === "CUSTOM" && currentPermission === "VIEW")
+                ) {
+                    modulePermissions.set(perm.module.id, perm.permission);
+                }
+
+                return {
+                    moduleId: perm.module.id,
+                    permission: perm.permission,
+                };
+            });
+
+            assetData.accessProfiles.push({
+                id: profile.id,
+                name: profile.name,
+                modulePermissions: modulePerms,
+                source: profile.source,
+            });
+        });
+    });
+
+    return {
+        moduleAccess: modules.map((module) => ({
+            id: module.id,
+            name: module.name,
+            slug: module.slug,
+            parentId: module.parentId,
+            hasAccess: role === "SUPER_ADMIN" ? true : modulePermissions.has(module.id),
+            permission:
+                role === "SUPER_ADMIN" ? "MANAGE" : modulePermissions.get(module.id) || "VIEW",
+        })),
+        assetAccess: Array.from(assetAccessMap.values()),
+    };
+}
+
+export async function getUserModuleAssets(moduleSlug: string) {
+    const userData = await getActiveUser();
+    if (!userData?.activeUser) return null;
+
+    const accessData = await getUserAccess(userData.activeUser.assets, userData.activeUser.role);
+
+    if (userData.activeUser.role === "SUPER_ADMIN") {
+        return await getAllAssets();
+    }
+
+    const mod = accessData.moduleAccess.find((m) => m.slug === moduleSlug);
+    if (!mod?.hasAccess) return null;
+
+    return accessData.assetAccess.filter((asset) =>
+        asset.accessProfiles.some((profile) =>
+            profile.modulePermissions.some((perm) => perm.moduleId === mod.id)
+        )
+    );
 }
