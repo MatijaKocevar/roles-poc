@@ -1,7 +1,8 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { FlatAsset, getActiveUser } from "../actions/user";
+import { getActiveUser } from "../actions/user";
+import { FlatAsset } from "@/types/user";
 
 type Module = {
     id: number;
