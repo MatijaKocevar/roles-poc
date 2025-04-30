@@ -118,7 +118,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                     <GalleryVerticalEnd className="w-4 h-4" />
                                 </div>
                                 <div className="flex flex-col gap-0.5 leading-none">
-                                    <span className="font-semibold">FLEX</span>
+                                    <span className="font-semibold">Role Management</span>
                                     <span>v3.0.0</span>
                                 </div>
                             </Link>
